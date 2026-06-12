@@ -13,6 +13,11 @@ let package = Package(
         .executableTarget(
             name: "CopyPaste",
             path: "Sources/CopyPaste"
+        ),
+        .testTarget(
+            name: "CopyPasteTests",
+            dependencies: ["CopyPaste"],
+            path: "Tests/CopyPasteTests"
         )
     ]
 )

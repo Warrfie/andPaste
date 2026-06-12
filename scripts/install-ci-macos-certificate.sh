@@ -1,0 +1,39 @@
+#!/bin/zsh
+set -euo pipefail
+
+: "${MACOS_CERTIFICATE_P12_BASE64:?Set MACOS_CERTIFICATE_P12_BASE64 in CI secrets}"
+: "${MACOS_CERTIFICATE_PASSWORD:?Set MACOS_CERTIFICATE_PASSWORD in CI secrets}"
+
+CI_TEMP_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
+KEYCHAIN_PATH="${KEYCHAIN_PATH:-$CI_TEMP_DIR/copypaste-signing.keychain-db}"
+KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD:-$(uuidgen)}"
+CERTIFICATE_PATH="${CERTIFICATE_PATH:-$CI_TEMP_DIR/copypaste-signing.p12}"
+CODE_SIGN_IDENTITY_VALUE="${CODE_SIGN_IDENTITY_VALUE:-}"
+
+umask 077
+printf '%s' "$MACOS_CERTIFICATE_P12_BASE64" | base64 --decode > "$CERTIFICATE_PATH"
+
+security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+security import "$CERTIFICATE_PATH" \
+  -P "$MACOS_CERTIFICATE_PASSWORD" \
+  -A \
+  -k "$KEYCHAIN_PATH" \
+  > /dev/null
+security list-keychains -d user -s "$KEYCHAIN_PATH" $(security list-keychains -d user | tr -d '"')
+security default-keychain -d user -s "$KEYCHAIN_PATH"
+security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+
+rm -f "$CERTIFICATE_PATH"
+
+if [[ -n "$CODE_SIGN_IDENTITY_VALUE" && "$CODE_SIGN_IDENTITY_VALUE" != "AUTO" ]]; then
+  if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -F "$CODE_SIGN_IDENTITY_VALUE" > /dev/null; then
+    echo "Expected code signing identity was not found in the temporary keychain." >&2
+    exit 1
+  fi
+elif ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -F "Developer ID Application:" > /dev/null; then
+  echo "No Developer ID Application identity was found in the temporary keychain." >&2
+  exit 1
+fi
+

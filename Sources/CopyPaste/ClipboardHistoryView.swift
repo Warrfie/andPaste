@@ -2,13 +2,6 @@ import AppKit
 import SwiftUI
 
 struct ClipboardHistoryView: View {
-    private static let windowWidth: CGFloat = 520
-    private static let maxWindowHeight: CGFloat = 620
-    private static let headerHeight: CGFloat = 52
-    private static let emptyStateHeight: CGFloat = 160
-    private static let maxListHeight: CGFloat = 320
-    private static let detailHeight: CGFloat = 220
-
     @ObservedObject var store: ClipboardStore
     let onClose: () -> Void
     let onSelect: (ClipboardItem) -> Void
@@ -28,15 +21,11 @@ struct ClipboardHistoryView: View {
     }
 
     private var listHeight: CGFloat {
-        guard !filteredItems.isEmpty else { return Self.emptyStateHeight }
-        let totalHeight = filteredItems.reduce(0) { $0 + ClipboardItemRow.height(for: $1) }
-        return min(totalHeight, Self.maxListHeight)
+        ClipboardHistoryLayout.listHeight(for: filteredItems)
     }
 
     private var contentHeight: CGFloat {
-        let detailHeight = selectedItem == nil ? 0 : Self.detailHeight
-        let bodyHeight = listHeight + detailHeight
-        return min(Self.headerHeight + bodyHeight, Self.maxWindowHeight)
+        ClipboardHistoryLayout.contentHeight(filteredItems: filteredItems, hasSelection: selectedItem != nil)
     }
 
     var body: some View {
@@ -63,17 +52,17 @@ struct ClipboardHistoryView: View {
 
             if let selectedItem {
                 ClipboardDetailView(item: selectedItem)
-                    .frame(height: Self.detailHeight)
+                    .frame(height: ClipboardHistoryLayout.detailHeight)
             }
         }
-        .frame(width: Self.windowWidth, height: contentHeight)
+        .frame(width: ClipboardHistoryLayout.windowWidth, height: contentHeight)
         .background(Color(nsColor: .windowBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .onAppear {
-            HistoryWindowSupport.resizeHistoryWindow(width: Self.windowWidth, height: contentHeight)
+            HistoryWindowSupport.resizeHistoryWindow(width: ClipboardHistoryLayout.windowWidth, height: contentHeight)
         }
         .onChange(of: contentHeight) { newHeight in
-            HistoryWindowSupport.resizeHistoryWindow(width: Self.windowWidth, height: newHeight)
+            HistoryWindowSupport.resizeHistoryWindow(width: ClipboardHistoryLayout.windowWidth, height: newHeight)
         }
     }
 
@@ -119,21 +108,12 @@ struct ClipboardHistoryView: View {
 }
 
 private struct ClipboardItemRow: View {
-    private static let verticalPadding: CGFloat = 20
-    private static let textContentHeight: CGFloat = 52
-    private static let imageContentHeight: CGFloat = 112
-
     let item: ClipboardItem
     let isSelected: Bool
     let onSelect: () -> Void
 
     static func height(for item: ClipboardItem) -> CGFloat {
-        switch item.content {
-        case .image:
-            return imageContentHeight + verticalPadding
-        case .text, .files:
-            return textContentHeight + verticalPadding
-        }
+        ClipboardHistoryLayout.rowHeight(for: item)
     }
 
     var body: some View {
@@ -164,9 +144,9 @@ private struct ClipboardItemRow: View {
     private var rowMinimumHeight: CGFloat {
         switch item.content {
         case .image:
-            return Self.imageContentHeight
+            return ClipboardHistoryLayout.imageRowContentHeight
         case .text, .files:
-            return Self.textContentHeight
+            return ClipboardHistoryLayout.textRowContentHeight
         }
     }
 

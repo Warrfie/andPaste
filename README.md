@@ -23,3 +23,11 @@ sh scripts/build-app.sh
 ```
 
 Avoid launching `.build/release/CopyPaste` directly. That is the raw SwiftPM executable and macOS treats it like a console program.
+
+## Release DMG
+
+```sh
+./scripts/build-dmg.sh
+```
+
+GitHub Actions builds CI on push/PR and creates DMG release artifacts from tags named `v*`. Signed and notarized release builds use repository secrets only; no Team ID, certificates, or App Store Connect credentials are stored in the repo.
