@@ -8,7 +8,7 @@ final class ClipboardHistoryPanelController {
     init(
         store: ClipboardStore,
         onClose: @escaping () -> Void,
-        onSelect: @escaping (ClipboardItem) -> Void
+        onSelect: @escaping (ClipboardItem, PasteMode) -> Void
     ) {
         panel = BorderlessKeyPanel(
             contentRect: NSRect(x: 0, y: 0, width: 520, height: 52),

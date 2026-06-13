@@ -19,8 +19,8 @@ final class AppModel: ObservableObject {
         onClose: { [weak self] in
             self?.closeHistoryWindow()
         },
-        onSelect: { [weak self] item in
-            self?.select(item)
+        onSelect: { [weak self] item, mode in
+            self?.select(item, mode: mode)
         }
     )
 
@@ -62,9 +62,12 @@ final class AppModel: ObservableObject {
         historyPanelController.close()
     }
 
-    func select(_ item: ClipboardItem) {
+    func select(_ item: ClipboardItem, mode: PasteMode = .plainText) {
         let application = targetApplication
-        store.copyToPasteboard(item)
+        switch mode {
+        case .plainText:
+            store.copyToPasteboard(item, asPlainText: true)
+        }
         closeHistoryWindow()
         pasteController.pasteIntoTargetApplication(application)
     }

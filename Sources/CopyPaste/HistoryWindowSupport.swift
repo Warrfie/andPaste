@@ -31,6 +31,11 @@ enum HistoryWindowSupport {
         historyWindow?.close()
     }
 
+    static func owns(_ event: NSEvent) -> Bool {
+        guard let historyWindow else { return false }
+        return event.window === historyWindow || NSApp.keyWindow === historyWindow
+    }
+
     private static var historyWindow: NSWindow? {
         registeredWindow
     }

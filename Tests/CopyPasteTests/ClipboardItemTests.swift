@@ -31,6 +31,6 @@ final class ClipboardItemTests: XCTestCase {
         XCTAssertEqual(item.title, "Image")
         XCTAssertEqual(item.subtitle, "80 x 40 px")
         XCTAssertEqual(item.searchText, "Image 80 x 40 px")
-        XCTAssertTrue(item.fingerprint.hasPrefix("image:"))
+        XCTAssertEqual(item.fingerprint, "image:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81")
     }
 }

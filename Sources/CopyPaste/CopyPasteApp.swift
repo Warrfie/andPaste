@@ -17,7 +17,11 @@ private struct MenuBarLabelView: View {
     @ObservedObject var model: AppModel
 
     var body: some View {
-        Image(systemName: "clipboard")
+        HStack(spacing: 1) {
+            Image(systemName: "globe")
+            Text("V")
+                .font(.system(size: 11, weight: .bold))
+        }
             .onAppear {
                 model.start()
             }

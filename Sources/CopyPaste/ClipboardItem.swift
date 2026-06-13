@@ -1,4 +1,5 @@
 import AppKit
+import CryptoKit
 import Foundation
 
 struct ClipboardItem: Identifiable, Equatable {
@@ -8,9 +9,17 @@ struct ClipboardItem: Identifiable, Equatable {
         case files([URL])
     }
 
-    let id = UUID()
+    let id: UUID
     let content: Content
-    let createdAt = Date()
+    let createdAt: Date
+    var isPinned: Bool
+
+    init(id: UUID = UUID(), content: Content, createdAt: Date = Date(), isPinned: Bool = false) {
+        self.id = id
+        self.content = content
+        self.createdAt = createdAt
+        self.isPinned = isPinned
+    }
 
     var title: String {
         switch content {
@@ -43,10 +52,14 @@ struct ClipboardItem: Identifiable, Equatable {
         case .text(let text):
             return "text:\(text)"
         case .image(_, let data):
-            return "image:\(data.hashValue)"
+            return "image:\(Self.sha256Hex(for: data))"
         case .files(let urls):
             return "files:\(urls.map(\.absoluteString).joined(separator: "|"))"
         }
+    }
+
+    private static func sha256Hex(for data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 }
 

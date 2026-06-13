@@ -4,10 +4,11 @@ import SwiftUI
 struct ClipboardHistoryView: View {
     @ObservedObject var store: ClipboardStore
     let onClose: () -> Void
-    let onSelect: (ClipboardItem) -> Void
+    let onSelect: (ClipboardItem, PasteMode) -> Void
 
     @State private var query = ""
     @State private var selectedItemID: ClipboardItem.ID?
+    @State private var keyDownMonitor: Any?
 
     private var filteredItems: [ClipboardItem] {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -40,7 +41,10 @@ struct ClipboardHistoryView: View {
                         ForEach(filteredItems) { item in
                             ClipboardItemRow(
                                 item: item,
-                                isSelected: item.id == selectedItemID
+                                isSelected: item.id == selectedItemID,
+                                onTogglePin: {
+                                    store.togglePin(item)
+                                }
                             ) {
                                 selectedItemID = item.id
                             }
@@ -51,7 +55,9 @@ struct ClipboardHistoryView: View {
             }
 
             if let selectedItem {
-                ClipboardDetailView(item: selectedItem)
+                ClipboardDetailView(item: selectedItem) {
+                    store.togglePin(selectedItem)
+                }
                     .frame(height: ClipboardHistoryLayout.detailHeight)
             }
         }
@@ -59,10 +65,18 @@ struct ClipboardHistoryView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .onAppear {
+            selectDefaultItemIfNeeded()
+            installKeyboardMonitorIfNeeded()
             HistoryWindowSupport.resizeHistoryWindow(width: ClipboardHistoryLayout.windowWidth, height: contentHeight)
+        }
+        .onDisappear {
+            removeKeyboardMonitor()
         }
         .onChange(of: contentHeight) { newHeight in
             HistoryWindowSupport.resizeHistoryWindow(width: ClipboardHistoryLayout.windowWidth, height: newHeight)
+        }
+        .onChange(of: filteredItems.map(\.id)) { _ in
+            selectDefaultItemIfNeeded()
         }
     }
 
@@ -83,10 +97,15 @@ struct ClipboardHistoryView: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 260)
 
-            Button("Paste") {
-                guard let selectedItem else { return }
-                onSelect(selectedItem)
+            Menu {
+                Button("Paste Plain Text") {
+                    pasteSelected(mode: .plainText)
+                }
+            } label: {
+                Image(systemName: "arrow.right")
+                    .frame(width: 28, height: 20)
             }
+            .menuStyle(.borderlessButton)
             .buttonStyle(.borderedProminent)
             .disabled(selectedItem == nil)
         }
@@ -105,11 +124,72 @@ struct ClipboardHistoryView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+
+    private func pasteSelected(mode: PasteMode) {
+        guard let selectedItem else { return }
+        onSelect(selectedItem, mode)
+    }
+
+    private func selectDefaultItemIfNeeded() {
+        if let selectedItemID, filteredItems.contains(where: { $0.id == selectedItemID }) {
+            return
+        }
+        selectedItemID = filteredItems.first?.id
+    }
+
+    private func selectAdjacentItem(offset: Int) {
+        guard !filteredItems.isEmpty else {
+            selectedItemID = nil
+            return
+        }
+
+        guard let currentSelectionID = selectedItemID,
+              let currentIndex = filteredItems.firstIndex(where: { $0.id == currentSelectionID }) else {
+            selectedItemID = filteredItems.first?.id
+            return
+        }
+
+        let nextIndex = min(max(currentIndex + offset, 0), filteredItems.count - 1)
+        selectedItemID = filteredItems[nextIndex].id
+    }
+
+    private func installKeyboardMonitorIfNeeded() {
+        guard keyDownMonitor == nil else { return }
+        keyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard HistoryWindowSupport.owns(event) else { return event }
+            guard event.modifierFlags.intersection(.deviceIndependentFlagsMask).isEmpty else { return event }
+
+            switch event.keyCode {
+            case 36:
+                pasteSelected(mode: .plainText)
+                return nil
+            case 53:
+                onClose()
+                return nil
+            case 125:
+                selectAdjacentItem(offset: 1)
+                return nil
+            case 126:
+                selectAdjacentItem(offset: -1)
+                return nil
+            default:
+                return event
+            }
+        }
+    }
+
+    private func removeKeyboardMonitor() {
+        if let keyDownMonitor {
+            NSEvent.removeMonitor(keyDownMonitor)
+            self.keyDownMonitor = nil
+        }
+    }
 }
 
 private struct ClipboardItemRow: View {
     let item: ClipboardItem
     let isSelected: Bool
+    let onTogglePin: () -> Void
     let onSelect: () -> Void
 
     static func height(for item: ClipboardItem) -> CGFloat {
@@ -117,20 +197,25 @@ private struct ClipboardItemRow: View {
     }
 
     var body: some View {
-        Button(action: onSelect) {
-            HStack(spacing: 12) {
-                content
+        HStack(spacing: 12) {
+            content
 
-                Text(item.createdAt, style: .time)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.tertiary)
-                    .frame(width: 54, alignment: .center)
+            Button(action: onTogglePin) {
+                Image(systemName: item.isPinned ? "pin.fill" : "pin")
+                    .frame(width: 20, height: 20)
             }
-            .frame(minHeight: rowMinimumHeight, alignment: .center)
-            .padding(10)
-            .contentShape(Rectangle())
+            .buttonStyle(.borderless)
+            .help(item.isPinned ? "Unpin" : "Pin")
+
+            Text(item.createdAt, style: .time)
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+                .frame(width: 54, alignment: .center)
         }
-        .buttonStyle(.plain)
+        .frame(minHeight: rowMinimumHeight, alignment: .center)
+        .padding(10)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onSelect)
         .background(
             Rectangle()
                 .fill(isSelected ? Color.accentColor.opacity(0.14) : Color(nsColor: .textBackgroundColor))
@@ -172,12 +257,26 @@ private struct ClipboardItemRow: View {
 
 private struct ClipboardDetailView: View {
     let item: ClipboardItem
+    let onTogglePin: () -> Void
 
     var body: some View {
-        ScrollView {
-            detailContent
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
+        VStack(spacing: 0) {
+            HStack {
+                Button(action: onTogglePin) {
+                    Label(item.isPinned ? "Pinned" : "Pin", systemImage: item.isPinned ? "pin.fill" : "pin")
+                }
+                .buttonStyle(.borderless)
+
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+
+            ScrollView {
+                detailContent
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(12)
+            }
         }
         .background(Color(nsColor: .windowBackgroundColor))
         .overlay(alignment: .top) {

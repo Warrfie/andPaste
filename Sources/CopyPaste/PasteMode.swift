@@ -1,0 +1,3 @@
+enum PasteMode {
+    case plainText
+}
