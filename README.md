@@ -2,7 +2,7 @@
 
 Simple macOS clipboard history, close to Windows `Win+V`.
 
-- `Control + Option + V` opens the history window.
+- `Fn + V` opens the history window. If macOS does not expose `Fn` as a hotkey modifier on your keyboard, the app falls back to `Control + Option + V`.
 - Click any item to paste it into the app that was active before the history window opened.
 - Text, images, and file URLs are tracked while the app is running.
 - iPhone handoff works through Apple's Universal Clipboard: copy an item from history on the Mac, then paste on iPhone with Handoff enabled and the same Apple ID.

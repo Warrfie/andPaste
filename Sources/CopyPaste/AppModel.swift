@@ -3,11 +3,15 @@ import SwiftUI
 
 @MainActor
 final class AppModel: ObservableObject {
+    private static let launchAtLoginUserDefaultsKey = "launchAtLogin"
+
     let store = ClipboardStore()
+    @Published private(set) var launchAtLogin = UserDefaults.standard.bool(forKey: launchAtLoginUserDefaultsKey)
 
     private let hotkeyManager = HotkeyManager()
     private let pasteController = PasteController()
     private let singleInstanceController = SingleInstanceController()
+    private let launchAtLoginController = LaunchAtLoginController()
     private var targetApplication: NSRunningApplication?
     private var didStart = false
     private lazy var historyPanelController = ClipboardHistoryPanelController(
@@ -32,6 +36,7 @@ final class AppModel: ObservableObject {
         }
 
         NSApp.setActivationPolicy(.accessory)
+        launchAtLoginController.apply(isEnabled: launchAtLogin)
         store.start()
 
         hotkeyManager.onShowHistory = { [weak self] in
@@ -62,6 +67,12 @@ final class AppModel: ObservableObject {
         store.copyToPasteboard(item)
         closeHistoryWindow()
         pasteController.pasteIntoTargetApplication(application)
+    }
+
+    func setLaunchAtLogin(_ isEnabled: Bool) {
+        launchAtLogin = isEnabled
+        UserDefaults.standard.set(isEnabled, forKey: Self.launchAtLoginUserDefaultsKey)
+        launchAtLoginController.apply(isEnabled: isEnabled)
     }
 
     func quit() {

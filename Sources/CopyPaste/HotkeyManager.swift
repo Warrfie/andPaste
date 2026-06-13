@@ -5,6 +5,7 @@ final class HotkeyManager {
     var onShowHistory: (() -> Void)?
 
     private let hotkeyID = EventHotKeyID(signature: OSType(0x43505648), id: 1)
+    private let fallbackHotkeyID = EventHotKeyID(signature: OSType(0x43505648), id: 2)
     private var hotkeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
 
@@ -26,9 +27,7 @@ final class HotkeyManager {
         )
         guard handlerStatus == noErr else { return }
 
-        let vKeyCode: UInt32 = 9
-        let modifiers = UInt32(controlKey | optionKey)
-        RegisterEventHotKey(vKeyCode, modifiers, hotkeyID, GetApplicationEventTarget(), 0, &hotkeyRef)
+        registerHotkey()
     }
 
     func stop() {
@@ -59,12 +58,37 @@ final class HotkeyManager {
             &pressedID
         )
         guard status == noErr else { return status }
-        guard pressedID.signature == hotkeyID.signature, pressedID.id == hotkeyID.id else {
+        guard pressedID.signature == hotkeyID.signature else {
+            return noErr
+        }
+        guard pressedID.id == hotkeyID.id || pressedID.id == fallbackHotkeyID.id else {
             return noErr
         }
         DispatchQueue.main.async { [weak self] in
             self?.onShowHistory?()
         }
         return noErr
+    }
+
+    private func registerHotkey() {
+        let vKeyCode: UInt32 = 9
+        let fnVStatus = RegisterEventHotKey(
+            vKeyCode,
+            UInt32(kEventKeyModifierFnMask),
+            hotkeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotkeyRef
+        )
+        guard fnVStatus != noErr else { return }
+
+        RegisterEventHotKey(
+            vKeyCode,
+            UInt32(controlKey | optionKey),
+            fallbackHotkeyID,
+            GetApplicationEventTarget(),
+            0,
+            &hotkeyRef
+        )
     }
 }

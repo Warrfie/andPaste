@@ -36,6 +36,11 @@ private struct StatusMenuView: View {
             model.store.clearHistory()
         }
 
+        Toggle("Launch at Login", isOn: Binding(
+            get: { model.launchAtLogin },
+            set: { model.setLaunchAtLogin($0) }
+        ))
+
         Divider()
 
         Button("Quit CopyPaste") {
