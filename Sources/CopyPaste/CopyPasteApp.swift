@@ -53,6 +53,10 @@ final class CopyPasteApplicationDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppLog.write("Application did finish launching; pid=\(ProcessInfo.processInfo.processIdentifier)")
         NSApp.setActivationPolicy(.accessory)
+        guard !XcodePreviewSupport.isRunning else {
+            AppLog.write("Application launch skipped for Xcode previews")
+            return
+        }
 
         let model = AppModel()
         self.model = model
@@ -255,6 +259,7 @@ private struct AboutWindowConfigurator: NSViewRepresentable {
     }
 
     private func configure(window: NSWindow?) {
+        guard !XcodePreviewSupport.isRunning else { return }
         guard let window else { return }
         window.level = .floating
         window.hidesOnDeactivate = false
