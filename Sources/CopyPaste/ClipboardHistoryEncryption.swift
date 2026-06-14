@@ -42,7 +42,10 @@ enum ClipboardHistoryKeychain {
 
         var keyData = Data(count: keyByteCount)
         let status = keyData.withUnsafeMutableBytes { bytes in
-            SecRandomCopyBytes(kSecRandomDefault, keyByteCount, bytes.baseAddress!)
+            guard let baseAddress = bytes.baseAddress else {
+                return errSecParam
+            }
+            return SecRandomCopyBytes(kSecRandomDefault, keyByteCount, baseAddress)
         }
         guard status == errSecSuccess else {
             throw ClipboardHistoryEncryptionError.keychainWriteFailed(status)

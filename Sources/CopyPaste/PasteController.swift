@@ -3,26 +3,31 @@ import ApplicationServices
 
 @MainActor
 final class PasteController {
+    private static let keyCodeForV: CGKeyCode = 9
+    private static let pasteDelay: TimeInterval = 0.16
+
     func pasteIntoTargetApplication(_ application: NSRunningApplication?) {
-        requestAccessibilityPermissionIfNeeded()
+        guard ensureAccessibilityPermission() else {
+            AppLog.write("Paste skipped: accessibility permission is not granted")
+            return
+        }
         application?.activate(options: [.activateIgnoringOtherApps])
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.pasteDelay) {
             self.postCommandV()
         }
     }
 
-    private func requestAccessibilityPermissionIfNeeded() {
-        guard !AXIsProcessTrusted() else { return }
+    private func ensureAccessibilityPermission() -> Bool {
+        guard !AXIsProcessTrusted() else { return true }
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
+        return AXIsProcessTrustedWithOptions(options)
     }
 
     private func postCommandV() {
         let source = CGEventSource(stateID: .hidSystemState)
-        let keyCodeForV: CGKeyCode = 9
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCodeForV, keyDown: true)
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: keyCodeForV, keyDown: false)
+        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: Self.keyCodeForV, keyDown: true)
+        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: Self.keyCodeForV, keyDown: false)
 
         keyDown?.flags = .maskCommand
         keyUp?.flags = .maskCommand

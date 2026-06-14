@@ -194,6 +194,8 @@ private struct CopyPasteVersion {
 
 private struct AboutSceneView: View {
     let versionTitle: String
+    private let privacyPolicyURL = URL(string: "https://github.com/Warrfie/CopyPaste/blob/main/docs/PRIVACY.md")
+    private let repositoryURL = URL(string: "https://github.com/Warrfie/CopyPaste")
 
     var body: some View {
         VStack(spacing: 16) {
@@ -215,8 +217,12 @@ private struct AboutSceneView: View {
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 12) {
-                Link("Privacy Policy", destination: URL(string: "https://github.com/Warrfie/CopyPaste/blob/main/docs/PRIVACY.md")!)
-                Link("GitHub", destination: URL(string: "https://github.com/Warrfie/CopyPaste")!)
+                if let privacyPolicyURL {
+                    Link("Privacy Policy", destination: privacyPolicyURL)
+                }
+                if let repositoryURL {
+                    Link("GitHub", destination: repositoryURL)
+                }
             }
         }
         .padding(20)

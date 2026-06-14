@@ -403,7 +403,7 @@ private enum PreviewClipboardData {
             createdAt: Date().addingTimeInterval(-120)
         ),
         ClipboardItem(
-            content: .files([URL(fileURLWithPath: "/Users/warrfie/Desktop/example.png")]),
+            content: .files([URL(fileURLWithPath: "/Users/example/Desktop/example.png")]),
             createdAt: Date().addingTimeInterval(-360)
         )
     ]

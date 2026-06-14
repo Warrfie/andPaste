@@ -5,23 +5,19 @@ ROOT_DIR="$(pwd)"
 SWIFTPM_CACHE_DIR="$ROOT_DIR/.build/swiftpm-cache"
 SWIFTPM_SCRATCH_DIR="$ROOT_DIR/.build/swiftpm-scratch"
 CLANG_CACHE_DIR="$ROOT_DIR/.build/clang-module-cache"
-PACKAGE_BACKUP="$ROOT_DIR/.build/Package.swift.test-backup"
+PACKAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/copypaste-tests.XXXXXX")"
 
 cleanup() {
-  if [ -f "$PACKAGE_BACKUP" ]; then
-    mv "$PACKAGE_BACKUP" Package.swift
-  else
-    rm -f Package.swift
-  fi
+  rm -rf "$PACKAGE_DIR"
 }
 trap cleanup EXIT INT TERM
 
 mkdir -p "$ROOT_DIR/.build"
-if [ -e Package.swift ]; then
-  cp Package.swift "$PACKAGE_BACKUP"
-fi
 
-cat > Package.swift <<'SWIFTPM'
+ln -s "$ROOT_DIR/Sources" "$PACKAGE_DIR/Sources"
+ln -s "$ROOT_DIR/Tests" "$PACKAGE_DIR/Tests"
+
+cat > "$PACKAGE_DIR/Package.swift" <<'SWIFTPM'
 // swift-tools-version: 5.9
 import PackageDescription
 
@@ -49,6 +45,7 @@ mkdir -p "$SWIFTPM_CACHE_DIR" "$SWIFTPM_SCRATCH_DIR" "$CLANG_CACHE_DIR"
 export CLANG_MODULE_CACHE_PATH="$CLANG_CACHE_DIR"
 
 swift test \
+  --package-path "$PACKAGE_DIR" \
   --disable-sandbox \
   --cache-path "$SWIFTPM_CACHE_DIR" \
   --scratch-path "$SWIFTPM_SCRATCH_DIR" \

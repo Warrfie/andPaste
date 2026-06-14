@@ -10,8 +10,8 @@ final class SingleInstanceController {
     private var observer: NSObjectProtocol?
 
     func becomePrimary(onShowHistoryRequest: @escaping () -> Void) -> Bool {
-        let lockPath = "/tmp/\(Self.lockFileName)"
-        lockFileDescriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
+        let lockURL = FileManager.default.temporaryDirectory.appendingPathComponent(Self.lockFileName)
+        lockFileDescriptor = open(lockURL.path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard lockFileDescriptor >= 0 else {
             AppLog.write("Single-instance lock open failed; errno=\(errno); continuing as primary")
             return true
