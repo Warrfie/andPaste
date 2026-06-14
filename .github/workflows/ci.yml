@@ -22,8 +22,8 @@ jobs:
       - name: Show Xcode Version
         run: xcodebuild -version
 
-      - name: Swift Test
-        run: swift test
+      - name: Run Tests
+        run: sh scripts/test.sh
 
       - name: Build App Bundle
         run: sh scripts/build-app.sh

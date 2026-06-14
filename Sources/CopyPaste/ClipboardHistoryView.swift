@@ -9,6 +9,7 @@ struct ClipboardHistoryView: View {
     @State private var query = ""
     @State private var selectedItemID: ClipboardItem.ID?
     @State private var keyDownMonitor: Any?
+    @State private var pasteMode: PasteMode = .plainText
 
     private var filteredItems: [ClipboardItem] {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -56,7 +57,7 @@ struct ClipboardHistoryView: View {
 
             if let selectedItem {
                 ClipboardDetailView(item: selectedItem) {
-                    store.togglePin(selectedItem)
+                    toggleSelectedPin()
                 }
                     .frame(height: ClipboardHistoryLayout.detailHeight)
             }
@@ -91,26 +92,26 @@ struct ClipboardHistoryView: View {
             .buttonStyle(.borderless)
             .help("Close")
 
-            Spacer(minLength: 16)
+            HeaderDragArea()
+                .frame(minWidth: 16, maxWidth: .infinity, minHeight: 28)
 
             TextField("Search", text: $query)
                 .textFieldStyle(.roundedBorder)
                 .frame(width: 260)
 
-            Menu {
-                Button("Paste Plain Text") {
-                    pasteSelected(mode: .plainText)
+            PasteSplitButton(
+                isEnabled: selectedItem != nil,
+                onPaste: {
+                    pasteSelected(mode: pasteMode)
+                },
+                onSelectPlainText: {
+                    pasteMode = .plainText
                 }
-            } label: {
-                Image(systemName: "arrow.right")
-                    .frame(width: 28, height: 20)
-            }
-            .menuStyle(.borderlessButton)
-            .buttonStyle(.borderedProminent)
-            .disabled(selectedItem == nil)
+            )
         }
         .padding(14)
         .background(Color(nsColor: .controlBackgroundColor))
+        .contentShape(Rectangle())
     }
 
     private var emptyState: some View {
@@ -128,6 +129,12 @@ struct ClipboardHistoryView: View {
     private func pasteSelected(mode: PasteMode) {
         guard let selectedItem else { return }
         onSelect(selectedItem, mode)
+    }
+
+    private func toggleSelectedPin() {
+        guard let selectedItemID,
+              let item = store.items.first(where: { $0.id == selectedItemID }) else { return }
+        store.togglePin(item)
     }
 
     private func selectDefaultItemIfNeeded() {
@@ -182,6 +189,20 @@ struct ClipboardHistoryView: View {
         if let keyDownMonitor {
             NSEvent.removeMonitor(keyDownMonitor)
             self.keyDownMonitor = nil
+        }
+    }
+}
+
+private struct HeaderDragArea: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        DragView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DragView: NSView {
+        override func mouseDown(with event: NSEvent) {
+            window?.performDrag(with: event)
         }
     }
 }
@@ -255,6 +276,47 @@ private struct ClipboardItemRow: View {
     }
 }
 
+private struct PasteSplitButton: View {
+    let isEnabled: Bool
+    let onPaste: () -> Void
+    let onSelectPlainText: () -> Void
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Button(action: onPaste) {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .frame(width: 34, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+
+            Rectangle()
+                .fill(Color.white.opacity(0.32))
+                .frame(width: 1, height: 16)
+
+            Menu {
+                Button(action: onSelectPlainText) {
+                    Label("Paste Plain Text", systemImage: "checkmark")
+                }
+            } label: {
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9, weight: .bold))
+                    .frame(width: 22, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.borderlessButton)
+            .buttonStyle(.plain)
+        }
+        .foregroundStyle(.white)
+        .background(isEnabled ? Color.accentColor : Color(nsColor: .disabledControlTextColor).opacity(0.28))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .opacity(isEnabled ? 1 : 0.55)
+        .allowsHitTesting(isEnabled)
+        .help("Paste")
+    }
+}
+
 private struct ClipboardDetailView: View {
     let item: ClipboardItem
     let onTogglePin: () -> Void
@@ -262,12 +324,16 @@ private struct ClipboardDetailView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
+                Text("Preview")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
                 Button(action: onTogglePin) {
                     Label(item.isPinned ? "Pinned" : "Pin", systemImage: item.isPinned ? "pin.fill" : "pin")
                 }
                 .buttonStyle(.borderless)
-
-                Spacer()
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -312,3 +378,47 @@ private struct ClipboardDetailView: View {
         }
     }
 }
+
+#if DEBUG
+struct ClipboardHistoryView_Previews: PreviewProvider {
+    static var previews: some View {
+        ClipboardHistoryView(
+            store: ClipboardStore(previewItems: PreviewClipboardData.items),
+            onClose: {},
+            onSelect: { _, _ in }
+        )
+        .previewDisplayName("Clipboard History")
+    }
+}
+
+private enum PreviewClipboardData {
+    static let items: [ClipboardItem] = [
+        ClipboardItem(
+            content: .text("Paste history preview with enough text to show wrapping and the detail pane below."),
+            createdAt: Date(),
+            isPinned: true
+        ),
+        ClipboardItem(
+            content: .image(sampleImage, sampleImage.tiffRepresentation ?? Data()),
+            createdAt: Date().addingTimeInterval(-120)
+        ),
+        ClipboardItem(
+            content: .files([URL(fileURLWithPath: "/Users/warrfie/Desktop/example.png")]),
+            createdAt: Date().addingTimeInterval(-360)
+        )
+    ]
+
+    private static var sampleImage: NSImage {
+        let image = NSImage(size: NSSize(width: 240, height: 140))
+        image.lockFocus()
+        NSColor.controlAccentColor.setFill()
+        NSBezierPath(rect: NSRect(x: 0, y: 0, width: 240, height: 140)).fill()
+        NSColor.white.withAlphaComponent(0.9).setFill()
+        NSBezierPath(roundedRect: NSRect(x: 28, y: 32, width: 184, height: 76), xRadius: 12, yRadius: 12).fill()
+        NSColor.controlAccentColor.withAlphaComponent(0.9).setFill()
+        NSBezierPath(ovalIn: NSRect(x: 52, y: 52, width: 36, height: 36)).fill()
+        image.unlockFocus()
+        return image
+    }
+}
+#endif

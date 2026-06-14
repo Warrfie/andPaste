@@ -6,7 +6,7 @@ Simple macOS clipboard history, close to Windows `Win+V`.
 - Click any item to paste it into the app that was active before the history window opened.
 - Text, images, and file URLs are tracked while the app is running.
 - iPhone handoff works through Apple's Universal Clipboard: copy an item from history on the Mac, then paste on iPhone with Handoff enabled and the same Apple ID.
-- The app uses SwiftUI lifecycle, `MenuBarExtra`, and a SwiftUI history window. Small AppKit/Carbon bridges remain for macOS-only system APIs: global hotkeys, pasteboard access, window placement, and simulated `Command+V`.
+- The app uses an AppKit lifecycle with a native status item. SwiftUI renders the history/settings/about windows, with AppKit/Carbon bridges for macOS-only system APIs: global hotkeys, pasteboard access, window placement, and simulated `Command+V`.
 
 ## Native Run
 
@@ -23,6 +23,14 @@ sh scripts/build-app.sh
 ```
 
 Avoid launching `.build/release/CopyPaste` directly. That is the raw SwiftPM executable and macOS treats it like a console program.
+
+## Tests
+
+```sh
+sh scripts/test.sh
+```
+
+The script creates a temporary SwiftPM manifest only for the test run, then removes it so Xcode does not show package targets.
 
 ## Release DMG
 

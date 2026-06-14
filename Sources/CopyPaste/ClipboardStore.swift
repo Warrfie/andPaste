@@ -1,4 +1,5 @@
 import AppKit
+import CryptoKit
 import Foundation
 
 @MainActor
@@ -8,20 +9,19 @@ final class ClipboardStore: ObservableObject {
     private let pasteboard = NSPasteboard.general
     private let maxRecentItems = 50
     private let persistenceURL: URL
+    private var encryptionKey: SymmetricKey?
+    private var didLoadPersistedItems = false
     private var lastChangeCount: Int
     private var timer: Timer?
 
     init() {
         lastChangeCount = pasteboard.changeCount
         persistenceURL = Self.defaultPersistenceURL()
-        items = Self.loadItems(from: persistenceURL)
-        if let item = ClipboardStore.readCurrentItem(from: pasteboard), !items.contains(where: { $0.fingerprint == item.fingerprint }) {
-            add(item)
-        }
     }
 
     func start() {
         guard timer == nil else { return }
+        AppLog.write("ClipboardStore start")
         timer = Timer.scheduledTimer(withTimeInterval: 0.45, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.pollPasteboard()
@@ -30,11 +30,13 @@ final class ClipboardStore: ObservableObject {
     }
 
     func stop() {
+        AppLog.write("ClipboardStore stop")
         timer?.invalidate()
         timer = nil
     }
 
     func clearHistory() {
+        loadPersistedHistoryIfNeeded()
         items.removeAll { !$0.isPinned }
         saveItems()
     }
@@ -62,6 +64,7 @@ final class ClipboardStore: ObservableObject {
     }
 
     func togglePin(_ item: ClipboardItem) {
+        loadPersistedHistoryIfNeeded()
         guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
         items[index].isPinned.toggle()
         sortItems()
@@ -69,10 +72,18 @@ final class ClipboardStore: ObservableObject {
         saveItems()
     }
 
+    func prepareForDisplay() {
+        loadPersistedHistoryIfNeeded()
+        if let item = ClipboardStore.readCurrentItem(from: pasteboard), !items.contains(where: { $0.fingerprint == item.fingerprint }) {
+            add(item)
+        }
+    }
+
     private func pollPasteboard() {
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount
         guard let item = Self.readCurrentItem(from: pasteboard) else { return }
+        loadPersistedHistoryIfNeeded()
         add(item)
     }
 
@@ -104,19 +115,46 @@ final class ClipboardStore: ObservableObject {
 
     private func saveItems() {
         do {
+            guard let encryptionKey = loadEncryptionKeyIfNeeded() else {
+                assertionFailure("Unable to save clipboard history: encryption key is unavailable")
+                return
+            }
             try FileManager.default.createDirectory(at: persistenceURL.deletingLastPathComponent(), withIntermediateDirectories: true)
             let records = items.compactMap(PersistentClipboardItem.init(item:))
-            let data = try JSONEncoder().encode(records)
-            try data.write(to: persistenceURL, options: .atomic)
+            let plainData = try JSONEncoder().encode(records)
+            let encryptedData = try ClipboardHistoryEncryption.encrypt(plainData, using: encryptionKey)
+            try encryptedData.write(to: persistenceURL, options: .atomic)
         } catch {
+            AppLog.write("Unable to save clipboard history: \(error.localizedDescription)")
             assertionFailure("Unable to save clipboard history: \(error.localizedDescription)")
         }
     }
 
-    private static func loadItems(from url: URL) -> [ClipboardItem] {
+    private func loadPersistedHistoryIfNeeded() {
+        guard !didLoadPersistedItems else { return }
+        didLoadPersistedItems = true
+        guard FileManager.default.fileExists(atPath: persistenceURL.path) else { return }
+        items = Self.loadItems(from: persistenceURL, encryptionKey: loadEncryptionKeyIfNeeded())
+    }
+
+    private func loadEncryptionKeyIfNeeded() -> SymmetricKey? {
+        if let encryptionKey {
+            return encryptionKey
+        }
+        AppLog.write("Loading clipboard history encryption key")
+        encryptionKey = try? ClipboardHistoryKeychain.loadOrCreateKey()
+        if encryptionKey == nil {
+            AppLog.write("Clipboard history encryption key is unavailable")
+        }
+        return encryptionKey
+    }
+
+    private static func loadItems(from url: URL, encryptionKey: SymmetricKey?) -> [ClipboardItem] {
+        guard let encryptionKey else { return [] }
         do {
             let data = try Data(contentsOf: url)
-            let records = try JSONDecoder().decode([PersistentClipboardItem].self, from: data)
+            let plainData = try ClipboardHistoryEncryption.decrypt(data, using: encryptionKey)
+            let records = try JSONDecoder().decode([PersistentClipboardItem].self, from: plainData)
             return records.compactMap(\.item)
         } catch {
             return []
@@ -124,11 +162,15 @@ final class ClipboardStore: ObservableObject {
     }
 
     private static func defaultPersistenceURL() -> URL {
+        applicationSupportURL()
+            .appendingPathComponent("history.cphistory")
+    }
+
+    private static func applicationSupportURL() -> URL {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         return baseURL
             .appendingPathComponent("CopyPaste", isDirectory: true)
-            .appendingPathComponent("history.json")
     }
 
     private static func readCurrentItem(from pasteboard: NSPasteboard) -> ClipboardItem? {
@@ -148,6 +190,15 @@ final class ClipboardStore: ObservableObject {
         return nil
     }
 }
+
+#if DEBUG
+extension ClipboardStore {
+    convenience init(previewItems: [ClipboardItem]) {
+        self.init()
+        items = previewItems
+    }
+}
+#endif
 
 private struct PersistentClipboardItem: Codable {
     enum ContentKind: String, Codable {

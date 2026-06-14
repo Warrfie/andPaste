@@ -22,7 +22,7 @@ final class ClipboardHistoryPanelController {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.minSize = NSSize(width: 420, height: 52)
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
 

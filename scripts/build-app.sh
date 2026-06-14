@@ -1,44 +1,20 @@
 #!/bin/sh
 set -eu
 
-swift build -c release >&2
-
+BUILD_DIR="$(pwd)/.build/app"
 APP_DIR=".build/CopyPaste.app"
-CONTENTS_DIR="$APP_DIR/Contents"
-MACOS_DIR="$CONTENTS_DIR/MacOS"
-RESOURCES_DIR="$CONTENTS_DIR/Resources"
-ICON_PATH="Resources/AppIcon.icns"
+BUILT_APP="$BUILD_DIR/Build/Products/Release/CopyPaste.app"
+
+xcodebuild \
+  -project CopyPaste.xcodeproj \
+  -scheme CopyPaste \
+  -configuration Release \
+  -derivedDataPath "$BUILD_DIR" \
+  CODE_SIGN_IDENTITY=- \
+  build >&2
 
 rm -rf "$APP_DIR"
-mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
-cp ".build/release/CopyPaste" "$MACOS_DIR/CopyPaste"
-cp "$ICON_PATH" "$RESOURCES_DIR/AppIcon.icns"
-
-cat > "$CONTENTS_DIR/Info.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>CFBundleExecutable</key>
-    <string>CopyPaste</string>
-    <key>CFBundleIdentifier</key>
-    <string>com.warrfie.copypaste</string>
-    <key>CFBundleName</key>
-    <string>CopyPaste</string>
-    <key>CFBundleIconFile</key>
-    <string>AppIcon</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
-    <key>CFBundleVersion</key>
-    <string>1</string>
-    <key>LSMinimumSystemVersion</key>
-    <string>13.0</string>
-    <key>LSUIElement</key>
-    <true/>
-</dict>
-</plist>
-PLIST
+mkdir -p ".build"
+cp -R "$BUILT_APP" "$APP_DIR"
 
 echo "$APP_DIR"

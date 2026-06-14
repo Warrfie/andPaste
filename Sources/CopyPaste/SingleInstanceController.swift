@@ -10,17 +10,22 @@ final class SingleInstanceController {
     private var observer: NSObjectProtocol?
 
     func becomePrimary(onShowHistoryRequest: @escaping () -> Void) -> Bool {
-        let lockPath = NSTemporaryDirectory().appending(Self.lockFileName)
+        let lockPath = "/tmp/\(Self.lockFileName)"
         lockFileDescriptor = open(lockPath, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
-        guard lockFileDescriptor >= 0 else { return true }
+        guard lockFileDescriptor >= 0 else {
+            AppLog.write("Single-instance lock open failed; errno=\(errno); continuing as primary")
+            return true
+        }
 
         guard flock(lockFileDescriptor, LOCK_EX | LOCK_NB) == 0 else {
+            AppLog.write("Single-instance lock already held; notifying primary")
             close(lockFileDescriptor)
             lockFileDescriptor = -1
             notifyPrimaryInstance()
             presentAlreadyRunningAlert()
             return false
         }
+        AppLog.write("Single-instance lock acquired")
 
         observer = DistributedNotificationCenter.default().addObserver(
             forName: Self.showHistoryNotificationName,
@@ -46,6 +51,7 @@ final class SingleInstanceController {
     }
 
     private func notifyPrimaryInstance() {
+        AppLog.write("Posting show-history notification to primary instance")
         DistributedNotificationCenter.default().postNotificationName(
             Self.showHistoryNotificationName,
             object: nil,
@@ -64,4 +70,5 @@ final class SingleInstanceController {
         alert.addButton(withTitle: "Quit")
         alert.runModal()
     }
+
 }
