@@ -1,0 +1,3 @@
+DEVELOPMENT_TEAM =
+CODE_SIGN_IDENTITY[sdk=macosx*] = -
+#include? "Signing.local.xcconfig"

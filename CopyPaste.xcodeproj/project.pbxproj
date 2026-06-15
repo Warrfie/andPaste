@@ -46,6 +46,8 @@
 		C00000000000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C00000000000000000000018 /* CopyPaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopyPaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C00000000000000000000019 /* CopyPasteLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPasteLauncher.swift; sourceTree = "<group>"; };
+		C00000000000000000000020 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
+		C00000000000000000000021 /* Signing.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig.example; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 				E00000000000000000000002 /* CopyPaste */,
 				E00000000000000000000006 /* CopyPasteLauncher */,
 				E00000000000000000000003 /* Resources */,
+				E00000000000000000000007 /* Config */,
 				E00000000000000000000004 /* Xcode */,
 				E00000000000000000000005 /* Products */,
 			);
@@ -122,6 +125,15 @@
 				C00000000000000000000019 /* CopyPasteLauncher.swift */,
 			);
 			path = Sources/CopyPasteLauncher;
+			sourceTree = "<group>";
+		};
+		E00000000000000000000007 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C00000000000000000000020 /* Signing.xcconfig */,
+				C00000000000000000000021 /* Signing.local.xcconfig.example */,
+			);
+			path = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -324,10 +336,11 @@
 		};
 		F00000000000000000000005 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(inherited)";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Xcode/Info.plist;
@@ -346,10 +359,11 @@
 		};
 		F00000000000000000000006 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = "$(inherited)";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Xcode/Info.plist;

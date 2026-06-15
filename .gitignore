@@ -10,6 +10,7 @@ DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
+Config/Signing.local.xcconfig
 
 # App bundles and archives
 *.app

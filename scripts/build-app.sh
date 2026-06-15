@@ -10,7 +10,6 @@ xcodebuild \
   -scheme CopyPaste \
   -configuration Release \
   -derivedDataPath "$BUILD_DIR" \
-  CODE_SIGN_IDENTITY=- \
   build >&2
 
 rm -rf "$APP_DIR"

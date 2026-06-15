@@ -24,6 +24,16 @@ sh scripts/build-app.sh
 
 Avoid launching `.build/release/CopyPaste` directly. That is the raw SwiftPM executable and macOS treats it like a console program.
 
+## Local Signing
+
+For Accessibility permissions to persist between Xcode runs, Debug builds must be signed with a stable Apple Development identity. Create an ignored local config:
+
+```sh
+cp Config/Signing.local.xcconfig.example Config/Signing.local.xcconfig
+```
+
+Then replace `YOUR_TEAM_ID` with your Apple Developer Team ID. Without this file the app falls back to ad-hoc `Sign to Run Locally`, and macOS may ask for Accessibility access again after rebuilds.
+
 ## Tests
 
 ```sh

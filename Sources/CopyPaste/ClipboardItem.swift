@@ -47,6 +47,13 @@ struct ClipboardItem: Identifiable, Equatable {
         "\(title) \(subtitle)"
     }
 
+    var supportsPlainTextPaste: Bool {
+        if case .text = content {
+            return true
+        }
+        return false
+    }
+
     var fingerprint: String {
         switch content {
         case .text(let text):

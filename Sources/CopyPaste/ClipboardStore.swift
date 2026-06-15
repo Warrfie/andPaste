@@ -42,18 +42,19 @@ final class ClipboardStore: ObservableObject {
     }
 
     func copyToPasteboard(_ item: ClipboardItem, asPlainText: Bool = false) {
+        let shouldPasteAsPlainText = asPlainText && item.supportsPlainTextPaste
         pasteboard.clearContents()
         switch item.content {
         case .text(let text):
             pasteboard.setString(text, forType: .string)
         case .image(let image, _):
-            if asPlainText {
+            if shouldPasteAsPlainText {
                 pasteboard.setString(item.subtitle, forType: .string)
             } else {
                 pasteboard.writeObjects([image])
             }
         case .files(let urls):
-            if asPlainText {
+            if shouldPasteAsPlainText {
                 pasteboard.setString(urls.map(\.path).joined(separator: "\n"), forType: .string)
             } else {
                 pasteboard.writeObjects(urls as [NSURL])
