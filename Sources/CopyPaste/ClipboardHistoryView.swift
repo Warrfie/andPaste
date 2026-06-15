@@ -300,13 +300,13 @@ private struct PasteSplitButton: View {
                     Label("Paste Plain Text", systemImage: "checkmark")
                 }
             } label: {
-                Image(systemName: "chevron.down")
-                    .font(.system(size: 9, weight: .bold))
-                    .frame(width: 22, height: 24)
-                    .contentShape(Rectangle())
+                Color.clear
+                    .frame(width: 1, height: 24)
             }
             .menuStyle(.borderlessButton)
             .buttonStyle(.plain)
+            .frame(width: 18, height: 24)
+            .clipped()
         }
         .foregroundStyle(.white)
         .background(isEnabled ? Color.accentColor : Color(nsColor: .disabledControlTextColor).opacity(0.28))
