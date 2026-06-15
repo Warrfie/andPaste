@@ -45,6 +45,10 @@ struct ClipboardHistoryView: View {
                                 isSelected: item.id == selectedItemID,
                                 onTogglePin: {
                                     store.togglePin(item)
+                                },
+                                onPaste: {
+                                    selectedItemID = item.id
+                                    onSelect(item, pasteMode)
                                 }
                             ) {
                                 selectedItemID = item.id
@@ -211,6 +215,7 @@ private struct ClipboardItemRow: View {
     let item: ClipboardItem
     let isSelected: Bool
     let onTogglePin: () -> Void
+    let onPaste: () -> Void
     let onSelect: () -> Void
 
     static func height(for item: ClipboardItem) -> CGFloat {
@@ -236,6 +241,7 @@ private struct ClipboardItemRow: View {
         .frame(minHeight: rowMinimumHeight, alignment: .center)
         .padding(10)
         .contentShape(Rectangle())
+        .onTapGesture(count: 2, perform: onPaste)
         .onTapGesture(perform: onSelect)
         .background(
             Rectangle()

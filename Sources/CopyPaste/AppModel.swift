@@ -90,7 +90,6 @@ final class AppModel: ObservableObject {
     func showSettingsWindow() {
         AppLog.write("Show settings window")
         if let settingsWindow {
-            NSApp.setActivationPolicy(.regular)
             NSApp.activate(ignoringOtherApps: true)
             settingsWindow.makeKeyAndOrderFront(nil)
             return
@@ -99,19 +98,17 @@ final class AppModel: ObservableObject {
         let hostingController = NSHostingController(rootView: SettingsView(model: self))
         let window = NSWindow(contentViewController: hostingController)
         window.title = "CopyPaste Settings"
-        window.styleMask = [.titled, .closable, .miniaturizable]
+        window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         let delegate = SettingsWindowDelegate { [weak self] in
             self?.settingsWindow = nil
             self?.settingsWindowDelegate = nil
-            NSApp.setActivationPolicy(.accessory)
         }
         window.delegate = delegate
         window.center()
         settingsWindow = window
         settingsWindowDelegate = delegate
 
-        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }

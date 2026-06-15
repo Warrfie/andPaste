@@ -61,7 +61,6 @@ final class SingleInstanceController {
     }
 
     private func presentAlreadyRunningAlert() {
-        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
         alert.alertStyle = .warning
