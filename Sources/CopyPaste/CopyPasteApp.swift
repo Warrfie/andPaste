@@ -19,6 +19,8 @@ enum AppLog {
     }
 
     static func write(_ message: String) {
+        NSLog("%@", message)
+
         lock.lock()
         defer { lock.unlock() }
 

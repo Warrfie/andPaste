@@ -338,6 +338,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "$(inherited)";

@@ -44,12 +44,16 @@ final class HotkeyManager {
     private let hotkeyID = EventHotKeyID(signature: OSType(0x43505648), id: 1)
     private var hotkeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
+    private var isHotkeyDown = false
 
     func start() {
         guard eventHandler == nil else { return }
         AppLog.write("HotkeyManager start; shortcut=\(shortcut.rawValue)")
 
-        var eventSpec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        var eventSpecs = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased))
+        ]
         let handlerStatus = InstallEventHandler(
             GetApplicationEventTarget(),
             { _, event, userData in
@@ -57,8 +61,8 @@ final class HotkeyManager {
                 let manager = Unmanaged<HotkeyManager>.fromOpaque(userData).takeUnretainedValue()
                 return manager.handleHotkey(event)
             },
-            1,
-            &eventSpec,
+            eventSpecs.count,
+            &eventSpecs,
             UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()),
             &eventHandler
         )
@@ -103,9 +107,24 @@ final class HotkeyManager {
         guard pressedID.id == hotkeyID.id else {
             return noErr
         }
-        AppLog.write("Hotkey pressed")
-        DispatchQueue.main.async { [weak self] in
-            self?.onShowHistory?()
+
+        let eventKind = GetEventKind(event)
+        switch eventKind {
+        case UInt32(kEventHotKeyPressed):
+            guard !isHotkeyDown else {
+                AppLog.write("Hotkey ignored: repeat while held")
+                return noErr
+            }
+            isHotkeyDown = true
+            AppLog.write("Hotkey pressed")
+            DispatchQueue.main.async { [weak self] in
+                self?.onShowHistory?()
+            }
+        case UInt32(kEventHotKeyReleased):
+            isHotkeyDown = false
+            AppLog.write("Hotkey released")
+        default:
+            return OSStatus(eventNotHandledErr)
         }
         return noErr
     }

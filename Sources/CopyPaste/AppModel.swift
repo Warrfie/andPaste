@@ -59,6 +59,9 @@ final class AppModel: ObservableObject {
         NSApp.setActivationPolicy(.accessory)
         store.start()
         AppLog.write("Clipboard store started")
+        Task { @MainActor [store] in
+            store.preloadPersistedHistory()
+        }
 
         hotkeyManager.onShowHistory = { [weak self] in
             self?.toggleHistoryWindow()

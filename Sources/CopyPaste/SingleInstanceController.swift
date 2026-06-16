@@ -22,7 +22,6 @@ final class SingleInstanceController {
             close(lockFileDescriptor)
             lockFileDescriptor = -1
             notifyPrimaryInstance()
-            presentAlreadyRunningAlert()
             return false
         }
         AppLog.write("Single-instance lock acquired")
@@ -58,16 +57,6 @@ final class SingleInstanceController {
             userInfo: nil,
             deliverImmediately: true
         )
-    }
-
-    private func presentAlreadyRunningAlert() {
-        NSApp.activate(ignoringOtherApps: true)
-        let alert = NSAlert()
-        alert.alertStyle = .warning
-        alert.messageText = "Another copy of CopyPaste is already running."
-        alert.informativeText = "CopyPaste opened the existing copy. Quit the existing copy before starting another one."
-        alert.addButton(withTitle: "Quit")
-        alert.runModal()
     }
 
 }

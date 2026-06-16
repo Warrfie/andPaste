@@ -8,11 +8,31 @@ final class ClipboardStore: ObservableObject {
 
     private let pasteboard = NSPasteboard.general
     private let maxRecentItems = 50
+    private static let filePasteboardTypes: Set<NSPasteboard.PasteboardType> = [
+        .fileURL,
+        NSPasteboard.PasteboardType("NSFilenamesPboardType")
+    ]
+    private static let imagePasteboardTypes: Set<NSPasteboard.PasteboardType> = [
+        .tiff,
+        .png,
+        NSPasteboard.PasteboardType("public.jpeg"),
+        NSPasteboard.PasteboardType("public.heic")
+    ]
+    private static let stringPasteboardTypes: Set<NSPasteboard.PasteboardType> = [
+        .string,
+        NSPasteboard.PasteboardType("NSStringPboardType"),
+        NSPasteboard.PasteboardType("TEXT"),
+        NSPasteboard.PasteboardType("UTF8_STRING")
+    ]
+    private static let saveCoalescingDelay: TimeInterval = 0.25
     private let persistenceURL: URL
+    private let saveQueue = DispatchQueue(label: "com.warrfie.copypaste.history-save", qos: .utility)
     private var encryptionKey: SymmetricKey?
     private var didLoadPersistedItems = false
     private var lastChangeCount: Int
     private var timer: Timer?
+    private var pendingSaveWorkItem: DispatchWorkItem?
+    private var pendingSaveSnapshot: ClipboardHistorySaveSnapshot?
 
     init() {
         lastChangeCount = pasteboard.changeCount
@@ -29,10 +49,19 @@ final class ClipboardStore: ObservableObject {
         }
     }
 
+    func preloadPersistedHistory() {
+        let startedAt = Date()
+        loadPersistedHistoryIfNeeded()
+        AppLog.write(
+            "Clipboard history preload completed; itemCount=\(items.count); duration=\(String(format: "%.3f", Date().timeIntervalSince(startedAt)))s"
+        )
+    }
+
     func stop() {
         AppLog.write("ClipboardStore stop")
         timer?.invalidate()
         timer = nil
+        flushPendingSave()
     }
 
     func clearHistory() {
@@ -61,7 +90,6 @@ final class ClipboardStore: ObservableObject {
             }
         }
         lastChangeCount = pasteboard.changeCount
-        add(item)
     }
 
     func togglePin(_ item: ClipboardItem) {
@@ -115,16 +143,49 @@ final class ClipboardStore: ObservableObject {
     }
 
     private func saveItems() {
+        guard let encryptionKey = loadEncryptionKeyIfNeeded() else {
+            assertionFailure("Unable to save clipboard history: encryption key is unavailable")
+            return
+        }
+
+        let snapshot = ClipboardHistorySaveSnapshot(
+            records: items.compactMap(PersistentClipboardItem.init(item:)),
+            persistenceURL: persistenceURL,
+            encryptionKey: encryptionKey
+        )
+        pendingSaveSnapshot = snapshot
+        pendingSaveWorkItem?.cancel()
+
+        let workItem = DispatchWorkItem {
+            Self.writeSaveSnapshot(snapshot)
+        }
+        pendingSaveWorkItem = workItem
+        saveQueue.asyncAfter(deadline: .now() + Self.saveCoalescingDelay, execute: workItem)
+    }
+
+    private func flushPendingSave() {
+        guard let snapshot = pendingSaveSnapshot else { return }
+        pendingSaveWorkItem?.cancel()
+        pendingSaveWorkItem = nil
+        pendingSaveSnapshot = nil
+        saveQueue.sync {
+            Self.writeSaveSnapshot(snapshot)
+        }
+    }
+
+    private static func writeSaveSnapshot(_ snapshot: ClipboardHistorySaveSnapshot) {
+        let startedAt = Date()
         do {
-            guard let encryptionKey = loadEncryptionKeyIfNeeded() else {
-                assertionFailure("Unable to save clipboard history: encryption key is unavailable")
-                return
-            }
-            try FileManager.default.createDirectory(at: persistenceURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let records = items.compactMap(PersistentClipboardItem.init(item:))
-            let plainData = try JSONEncoder().encode(records)
-            let encryptedData = try ClipboardHistoryEncryption.encrypt(plainData, using: encryptionKey)
-            try encryptedData.write(to: persistenceURL, options: .atomic)
+            try FileManager.default.createDirectory(
+                at: snapshot.persistenceURL.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let plainData = try JSONEncoder().encode(snapshot.records)
+            let encryptedData = try ClipboardHistoryEncryption.encrypt(plainData, using: snapshot.encryptionKey)
+            try encryptedData.write(to: snapshot.persistenceURL, options: .atomic)
+            AppLog.write(
+                "Clipboard history save completed; itemCount=\(snapshot.records.count); plainBytes=\(plainData.count); encryptedBytes=\(encryptedData.count); duration=\(String(format: "%.3f", Date().timeIntervalSince(startedAt)))s"
+            )
         } catch {
             AppLog.write("Unable to save clipboard history: \(error.localizedDescription)")
             assertionFailure("Unable to save clipboard history: \(error.localizedDescription)")
@@ -174,21 +235,92 @@ final class ClipboardStore: ObservableObject {
             .appendingPathComponent("CopyPaste", isDirectory: true)
     }
 
-    private static func readCurrentItem(from pasteboard: NSPasteboard) -> ClipboardItem? {
-        if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL], !urls.isEmpty {
-            return ClipboardItem(content: .files(urls))
+    static func readCurrentItem(from pasteboard: NSPasteboard) -> ClipboardItem? {
+        let pasteboardTypes = pasteboard.types ?? []
+        let fileURLs = hasFileURLs(in: pasteboardTypes)
+            ? pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL]
+            : nil
+        let image = hasImage(in: pasteboardTypes)
+            ? NSImage(pasteboard: pasteboard)
+            : nil
+        let string = hasString(in: pasteboardTypes)
+            ? pasteboard.string(forType: .string)
+            : nil
+
+        return makeItem(
+            fileURLs: fileURLs,
+            string: string,
+            image: image,
+            pasteboardTypes: pasteboardTypes
+        )
+    }
+
+    static func makeItem(
+        fileURLs: [URL]?,
+        string: String?,
+        image: NSImage?,
+        pasteboardTypes: [NSPasteboard.PasteboardType]
+    ) -> ClipboardItem? {
+        if hasFileURLs(in: pasteboardTypes),
+           let urls = fileURLs,
+           !urls.isEmpty {
+            let item = ClipboardItem(content: .files(urls))
+            logReadItem(item, pasteboardTypes: pasteboardTypes)
+            return item
         }
 
-        if let string = pasteboard.string(forType: .string), !string.isEmpty {
-            return ClipboardItem(content: .text(string))
+        if let string, !string.isEmpty {
+            let item = ClipboardItem(content: .text(string))
+            logReadItem(item, pasteboardTypes: pasteboardTypes)
+            return item
         }
 
-        if let image = NSImage(pasteboard: pasteboard) {
+        if let image {
             let data = image.tiffRepresentation ?? Data()
-            return ClipboardItem(content: .image(image, data))
+            let item = ClipboardItem(content: .image(image, data))
+            logImageItem(item, data: data, pasteboardTypes: pasteboardTypes)
+            logReadItem(item, pasteboardTypes: pasteboardTypes)
+            return item
         }
 
+        AppLog.write("Read pasteboard item: empty; pasteboardTypes=\(formatPasteboardTypes(pasteboardTypes))")
         return nil
+    }
+
+    private static func hasFileURLs(in pasteboardTypes: [NSPasteboard.PasteboardType]) -> Bool {
+        !filePasteboardTypes.isDisjoint(with: Set(pasteboardTypes))
+    }
+
+    private static func hasImage(in pasteboardTypes: [NSPasteboard.PasteboardType]) -> Bool {
+        !imagePasteboardTypes.isDisjoint(with: Set(pasteboardTypes))
+    }
+
+    private static func hasString(in pasteboardTypes: [NSPasteboard.PasteboardType]) -> Bool {
+        !stringPasteboardTypes.isDisjoint(with: Set(pasteboardTypes))
+    }
+
+    private static func logReadItem(_ item: ClipboardItem, pasteboardTypes: [NSPasteboard.PasteboardType]) {
+        AppLog.write(
+            "Read pasteboard item: contentType=\(item.contentType.rawValue); pasteboardTypes=\(formatPasteboardTypes(pasteboardTypes))"
+        )
+    }
+
+    private static func logImageItem(_ item: ClipboardItem, data: Data, pasteboardTypes: [NSPasteboard.PasteboardType]) {
+        guard case .image(let image, _) = item.content else { return }
+        AppLog.write(
+            "Read image diagnostics: size=\(Int(image.size.width))x\(Int(image.size.height)); dataBytes=\(data.count); fingerprint=\(shortFingerprint(item.fingerprint)); pasteboardTypes=\(formatPasteboardTypes(pasteboardTypes))"
+        )
+    }
+
+    private static func shortFingerprint(_ fingerprint: String) -> String {
+        String(fingerprint.prefix(24))
+    }
+
+    private static func formatPasteboardTypes(_ pasteboardTypes: [NSPasteboard.PasteboardType]) -> String {
+        pasteboardTypes
+            .map(\.rawValue)
+            .sorted()
+            .joined(separator: ",")
     }
 }
 
@@ -252,4 +384,10 @@ private struct PersistentClipboardItem: Codable {
             return ClipboardItem(id: id, content: .files(fileURLs), createdAt: createdAt, isPinned: isPinned)
         }
     }
+}
+
+private struct ClipboardHistorySaveSnapshot {
+    let records: [PersistentClipboardItem]
+    let persistenceURL: URL
+    let encryptionKey: SymmetricKey
 }

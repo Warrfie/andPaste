@@ -18,13 +18,15 @@ final class ClipboardHistoryPanelController {
         )
         panel.title = "CopyPaste"
         panel.isReleasedWhenClosed = false
-        panel.level = .floating
+        panel.level = .statusBar
+        panel.isFloatingPanel = true
+        panel.hidesOnDeactivate = false
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.isMovableByWindowBackground = false
         panel.minSize = NSSize(width: 420, height: 52)
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .transient, .ignoresCycle]
 
         let rootView = ClipboardHistoryView(
             store: store,
@@ -44,6 +46,8 @@ final class ClipboardHistoryPanelController {
         HistoryWindowSupport.positionNearMouse(panel)
         NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
+        panel.orderFrontRegardless()
+        AppLog.write("History panel shown; isVisible=\(panel.isVisible); frame=\(NSStringFromRect(panel.frame)); level=\(panel.level.rawValue)")
     }
 
     func close() {

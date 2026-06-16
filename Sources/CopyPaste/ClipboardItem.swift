@@ -3,6 +3,66 @@ import CryptoKit
 import Foundation
 
 struct ClipboardItem: Identifiable, Equatable {
+    enum ContentType: String {
+        case text
+        case image
+        case files
+
+        var title: String {
+            switch self {
+            case .text:
+                return "Text"
+            case .image:
+                return "Image"
+            case .files:
+                return "File"
+            }
+        }
+    }
+
+    enum DisplayType: Equatable {
+        case text
+        case image
+        case file
+        case files
+        case webLink
+        case fileLink
+
+        var title: String {
+            switch self {
+            case .text:
+                return "Text"
+            case .image:
+                return "Image"
+            case .file:
+                return "File"
+            case .files:
+                return "Files"
+            case .webLink:
+                return "Link"
+            case .fileLink:
+                return "File Link"
+            }
+        }
+
+        var systemImageName: String {
+            switch self {
+            case .text:
+                return "text.alignleft"
+            case .image:
+                return "photo"
+            case .file:
+                return "doc"
+            case .files:
+                return "folder"
+            case .webLink:
+                return "link"
+            case .fileLink:
+                return "doc"
+            }
+        }
+    }
+
     enum Content: Equatable {
         case text(String)
         case image(NSImage, Data)
@@ -21,14 +81,34 @@ struct ClipboardItem: Identifiable, Equatable {
         self.isPinned = isPinned
     }
 
-    var title: String {
+    var contentType: ContentType {
         switch content {
         case .text:
-            return "Text"
+            return .text
         case .image:
-            return "Image"
+            return .image
+        case .files:
+            return .files
+        }
+    }
+
+    var displayType: DisplayType {
+        switch content {
+        case .text(let text):
+            return Self.displayType(forText: text)
+        case .image:
+            return .image
         case .files(let urls):
-            return urls.count == 1 ? "File" : "\(urls.count) Files"
+            return urls.count == 1 ? .file : .files
+        }
+    }
+
+    var title: String {
+        switch content {
+        case .text, .image:
+            return contentType.title
+        case .files(let urls):
+            return urls.count == 1 ? contentType.title : "\(urls.count) Files"
         }
     }
 
@@ -67,6 +147,28 @@ struct ClipboardItem: Identifiable, Equatable {
 
     private static func sha256Hex(for data: Data) -> String {
         SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func displayType(forText text: String) -> DisplayType {
+        let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedText.isEmpty else { return .text }
+
+        if let url = URL(string: trimmedText), let scheme = url.scheme?.lowercased() {
+            if url.isFileURL {
+                return .fileLink
+            }
+            if scheme == "http" || scheme == "https" {
+                return .webLink
+            }
+        }
+
+        var isDirectory: ObjCBool = false
+        if trimmedText.hasPrefix("/"),
+           FileManager.default.fileExists(atPath: trimmedText, isDirectory: &isDirectory) {
+            return .fileLink
+        }
+
+        return .text
     }
 }
 

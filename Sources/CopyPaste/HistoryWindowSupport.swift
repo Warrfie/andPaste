@@ -53,5 +53,6 @@ enum HistoryWindowSupport {
         frame.origin.x = min(max(anchor.midX - frame.width / 2, visibleFrame.minX + 12), visibleFrame.maxX - frame.width - 12)
         frame.origin.y = min(max(anchor.minY - frame.height - 10, visibleFrame.minY + 12), visibleFrame.maxY - frame.height - 12)
         window.setFrame(frame, display: true)
+        AppLog.write("History panel positioned; mouse=\(NSStringFromPoint(mouseLocation)); visibleFrame=\(NSStringFromRect(visibleFrame)); frame=\(NSStringFromRect(frame))")
     }
 }

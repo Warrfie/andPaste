@@ -226,6 +226,8 @@ private struct ClipboardItemRow: View {
         HStack(spacing: 12) {
             content
 
+            ClipboardContentTypeBadge(displayType: item.displayType)
+
             Button(action: onTogglePin) {
                 Image(systemName: item.isPinned ? "pin.fill" : "pin")
                     .frame(width: 20, height: 20)
@@ -279,6 +281,24 @@ private struct ClipboardItemRow: View {
                 .multilineTextAlignment(.leading)
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+}
+
+private struct ClipboardContentTypeBadge: View {
+    let displayType: ClipboardItem.DisplayType
+
+    var body: some View {
+        Image(systemName: displayType.systemImageName)
+            .font(.system(size: 13, weight: .medium))
+            .foregroundStyle(.secondary)
+            .frame(width: 22, height: 22)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 5))
+            .overlay(
+                RoundedRectangle(cornerRadius: 5)
+                    .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+            )
+            .help(displayType.title)
     }
 }
 
