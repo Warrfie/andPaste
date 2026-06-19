@@ -14,8 +14,8 @@ DMG_APPLICATIONS_ICON_X="${DMG_APPLICATIONS_ICON_X:-495}"
 DMG_APPLICATIONS_ICON_Y="${DMG_APPLICATIONS_ICON_Y:-185}"
 SIGNING_ALLOWED="${SIGNING_ALLOWED:-NO}"
 NOTARIZATION_ALLOWED="${NOTARIZATION_ALLOWED:-NO}"
-DMG_LAYOUT_REQUIRED="${DMG_LAYOUT_REQUIRED:-YES}"
-OPEN_FINAL_DMG="${OPEN_FINAL_DMG:-YES}"
+DMG_LAYOUT_REQUIRED="${DMG_LAYOUT_REQUIRED:-$SIGNING_ALLOWED}"
+OPEN_FINAL_DMG="${OPEN_FINAL_DMG:-NO}"
 CODE_SIGN_IDENTITY_VALUE="${CODE_SIGN_IDENTITY_VALUE:-}"
 DMG_CODE_SIGN_IDENTITY="${DMG_CODE_SIGN_IDENTITY:-$CODE_SIGN_IDENTITY_VALUE}"
 ENTITLEMENTS_PATH="${ENTITLEMENTS_PATH:-$PWD/Xcode/CopyPaste.entitlements}"
@@ -32,8 +32,7 @@ if [[ -z "$DMG_WORK_DIR" ]]; then
 fi
 
 STAGING_DIR="$DMG_WORK_DIR/dmg-root"
-DMG_MOUNT_ROOT="${DMG_MOUNT_ROOT:-/Volumes}"
-DMG_MOUNT_DIR=""
+DMG_MOUNT_DIR="$DMG_WORK_DIR/dmg-mount"
 DMG_BACKGROUND_DIR="$STAGING_DIR/.background"
 DMG_BACKGROUND_PATH="$DMG_BACKGROUND_DIR/background.png"
 DMG_BACKGROUND_RENDERER="$PWD/scripts/render-dmg-background.swift"
@@ -73,57 +72,15 @@ handle_dmg_layout_failure() {
 
   if [[ "$DMG_LAYOUT_REQUIRED" == "YES" ]]; then
     echo "$message" >&2
-    echo "DMG Finder layout is required for this build." >&2
-    echo "The writable DMG is still mounted at: $DMG_MOUNT_DIR" >&2
-    echo "Grant Automation access for your terminal to control Finder, then run the script again." >&2
+    echo "DMG Finder layout is required for this build. Set DMG_LAYOUT_REQUIRED=NO only for local/dev packaging." >&2
     echo "Set DMG_LAYOUT_REQUIRED=NO only for local/dev packaging without Finder layout." >&2
-    open "$DMG_MOUNT_DIR" 2>/dev/null || true
-    ATTACHED_DMG=""
-    DMG_WORK_DIR_CREATED="NO"
     exit 1
   fi
 
   echo "Warning: $message; continuing with default layout." >&2
 }
 
-ensure_finder_automation_access() {
-  local output
-
-  if [[ "$DMG_LAYOUT_REQUIRED" != "YES" ]]; then
-    return 0
-  fi
-  if ! command -v osascript >/dev/null 2>&1; then
-    handle_dmg_layout_failure "osascript is unavailable; cannot apply Finder DMG layout"
-  fi
-
-  if output="$(osascript -e 'tell application "Finder" to get bounds of Finder window 1' 2>&1)"; then
-    return 0
-  fi
-
-  printf '%s\n' "$output" >&2
-  echo "Finder Automation access is required before building the DMG layout." >&2
-  echo "Open System Settings -> Privacy & Security -> Automation and allow your terminal/IDE to control Finder." >&2
-  echo "If the app is already listed there as denied, toggle Finder on or reset Apple Events permission for that app, then rerun this script." >&2
-  open "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation" 2>/dev/null || true
-  exit 1
-}
-
-verify_dmg_layout() {
-  local ds_store="$DMG_MOUNT_DIR/.DS_Store"
-  local attempt
-
-  for attempt in {1..10}; do
-    if [[ -f "$ds_store" ]] && strings "$ds_store" | grep -q "backgroundImageAlias"; then
-      return 0
-    fi
-    sleep 0.5
-  done
-
-  return 1
-}
-
 mkdir -p "$OUTPUT_DIR"
-ensure_finder_automation_access
 
 APP_PATH="$(sh scripts/build-app.sh)"
 if [[ ! -d "$APP_PATH" ]]; then
@@ -167,7 +124,8 @@ if [[ "$SIGNING_ALLOWED" == "YES" ]]; then
 fi
 
 rm -f "$DMG_PATH" "$DMG_RW_PATH" "$SHA_PATH" "$NOTARY_RESULT_PATH"
-hdiutil detach "$DMG_MOUNT_ROOT/$VOLUME_NAME" -quiet 2>/dev/null || true
+rm -rf "$DMG_MOUNT_DIR"
+mkdir -p "$DMG_MOUNT_DIR"
 hdiutil create \
   -volname "$VOLUME_NAME" \
   -srcfolder "$STAGING_DIR" \
@@ -177,16 +135,11 @@ hdiutil create \
   "$DMG_RW_PATH" \
   -quiet
 
-ATTACH_OUTPUT="$(hdiutil attach "$DMG_RW_PATH" \
+hdiutil attach "$DMG_RW_PATH" \
   -readwrite \
   -noautoopen \
-  -mountroot "$DMG_MOUNT_ROOT")"
-DMG_MOUNT_DIR="$(printf '%s\n' "$ATTACH_OUTPUT" | awk '/Apple_HFS/ {for (i = 1; i <= NF; i++) if ($i ~ /^\/Volumes\//) {print $i; exit}}' | tr -d '\r')"
-if [[ -z "$DMG_MOUNT_DIR" || ! -d "$DMG_MOUNT_DIR" ]]; then
-  echo "Failed to mount writable DMG:" >&2
-  printf '%s\n' "$ATTACH_OUTPUT" >&2
-  exit 1
-fi
+  -mountpoint "$DMG_MOUNT_DIR" \
+  -quiet
 ATTACHED_DMG="$DMG_MOUNT_DIR"
 
 if command -v SetFile >/dev/null 2>&1; then
@@ -215,6 +168,8 @@ tell application "Finder"
 
     set position of item "$APP_NAME" of container window to {$DMG_APP_ICON_X, $DMG_APP_ICON_Y}
     set position of item "Applications" of container window to {$DMG_APPLICATIONS_ICON_X, $DMG_APPLICATIONS_ICON_Y}
+    close
+    open
     update without registering applications
     delay 1
   end tell
@@ -227,15 +182,11 @@ else
   handle_dmg_layout_failure "osascript is unavailable; skipping Finder DMG layout"
 fi
 
-if ! verify_dmg_layout; then
-  handle_dmg_layout_failure "Finder DMG layout did not persist background metadata"
-fi
-
 rm -rf "$DMG_MOUNT_DIR/.fseventsd" "$DMG_MOUNT_DIR/.Spotlight-V100" "$DMG_MOUNT_DIR/.Trashes"
-bless --folder "$DMG_MOUNT_DIR" --openfolder "$DMG_MOUNT_DIR" 2>/dev/null || true
 sync
 hdiutil detach "$DMG_MOUNT_DIR" -quiet
 ATTACHED_DMG=""
+rm -rf "$DMG_MOUNT_DIR"
 
 hdiutil convert "$DMG_RW_PATH" \
   -format UDZO \

@@ -24,6 +24,7 @@
 		B00000000000000000000015 /* SingleInstanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000015 /* SingleInstanceController.swift */; };
 		B00000000000000000000016 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000016 /* AppIcon.icns */; };
 		B00000000000000000000017 /* CopyPasteLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000019 /* CopyPasteLauncher.swift */; };
+		B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000023 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		C00000000000000000000020 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		C00000000000000000000021 /* Signing.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig.example; sourceTree = "<group>"; };
 		C00000000000000000000022 /* CopyPaste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CopyPaste.entitlements; sourceTree = "<group>"; };
+		C00000000000000000000023 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				C00000000000000000000016 /* AppIcon.icns */,
+				C00000000000000000000023 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -197,6 +200,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B00000000000000000000016 /* AppIcon.icns in Resources */,
+				B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

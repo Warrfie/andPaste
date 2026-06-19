@@ -6,8 +6,7 @@ The app does not send clipboard contents, images, file paths, settings, or usage
 
 Clipboard history is stored at:
 
-- Sandboxed app: `~/Library/Containers/com.warrfie.copypaste/Data/Library/Application Support/CopyPaste/history.cphistory`
-- Older unsandboxed development builds: `~/Library/Application Support/CopyPaste/history.cphistory`
+`~/Library/Containers/com.warrfie.copypaste/Data/Library/Application Support/CopyPaste/history.cphistory`
 
 The encryption key is stored in the macOS Keychain as a generic password for CopyPaste. The key is marked device-local, so it is intended to stay on this Mac rather than migrate to another device.
 
