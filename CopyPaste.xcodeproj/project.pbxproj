@@ -48,6 +48,7 @@
 		C00000000000000000000019 /* CopyPasteLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPasteLauncher.swift; sourceTree = "<group>"; };
 		C00000000000000000000020 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		C00000000000000000000021 /* Signing.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig.example; sourceTree = "<group>"; };
+		C00000000000000000000022 /* CopyPaste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CopyPaste.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				C00000000000000000000017 /* Info.plist */,
+				C00000000000000000000022 /* CopyPaste.entitlements */,
 			);
 			path = Xcode;
 			sourceTree = "<group>";
@@ -339,9 +341,11 @@
 			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_ENTITLEMENTS = Xcode/CopyPaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "$(inherited)";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Xcode/Info.plist;
@@ -362,9 +366,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Xcode/CopyPaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "$(inherited)";
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Xcode/Info.plist;

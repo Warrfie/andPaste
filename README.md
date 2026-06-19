@@ -19,6 +19,7 @@ If macOS warns that the app was downloaded from the internet, choose **Open**. R
 - Click any item to paste it into the app that was active before the history window opened.
 - Text, images, file/folder URLs, web links, and file links are tracked while the app is running.
 - Clipboard history is stored locally and encrypted before being written to disk.
+- The app runs in the macOS App Sandbox.
 - Files and folders are stored as file URLs, not copied into the history database.
 - Images are stored as image data so previews survive app restarts.
 - iPhone handoff works through Apple's Universal Clipboard: copy an item from history on the Mac, then paste on iPhone with Handoff enabled and the same Apple ID.
