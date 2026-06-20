@@ -6,8 +6,6 @@ final class PasteController {
     private static let keyCodeForV: CGKeyCode = 9
     private static let pasteDelay: TimeInterval = 0.35
 
-    private var didRequestAccessibilityPromptThisLaunch = false
-
     func pasteIntoTargetApplication(_ application: NSRunningApplication?) {
         guard ensureAccessibilityPermission() else {
             AppLog.write("Paste skipped: accessibility permission is not granted")
@@ -25,14 +23,14 @@ final class PasteController {
 
     private func ensureAccessibilityPermission() -> Bool {
         guard !CGPreflightPostEventAccess() else { return true }
-
-        if !didRequestAccessibilityPromptThisLaunch {
-            didRequestAccessibilityPromptThisLaunch = true
-            return requestPostEventAccess()
+        guard !AXIsProcessTrusted() else {
+            AppLog.write(
+                "Post event access preflight is false, but Accessibility is trusted; continuing without restart"
+            )
+            return true
         }
 
-        AppLog.write("Paste skipped: post event access is not granted")
-        return false
+        return requestPostEventAccess()
     }
 
     private func requestPostEventAccess() -> Bool {
