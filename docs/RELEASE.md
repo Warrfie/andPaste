@@ -1,12 +1,12 @@
-# CopyPaste Release Checklist
+# andPaste Release Checklist
 
 ## Download Link
 
 Users should download the latest build from:
 
-https://github.com/Warrfie/CopyPaste/releases/latest
+https://github.com/Warrfie/andPaste/releases/latest
 
-Release assets are published from tags named `v*`. The DMG asset is named `copypaste-<tag>.dmg`.
+Release assets are published from tags named `v*`. The DMG asset is named `andpaste-<tag>.dmg`.
 
 ## Before Tagging
 
@@ -38,7 +38,7 @@ GitHub Actions will run tests, build the DMG, sign/notarize when release secrets
 
 1. Open the latest release page.
 2. Download the DMG.
-3. Install `CopyPaste.app` into `Applications`.
+3. Install `andPaste.app` into `Applications`.
 4. Launch it and grant Accessibility access.
 5. Copy text, an image, and a file/folder.
 6. Open history with `Fn + V` and paste one item into another app.

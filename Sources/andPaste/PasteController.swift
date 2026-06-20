@@ -40,7 +40,7 @@ final class PasteController {
         let alert = NSAlert()
         alert.alertStyle = .informational
         alert.messageText = "Accessibility access is required."
-        alert.informativeText = "CopyPaste needs Accessibility access to paste selected clipboard items into the active app. Open System Settings and enable CopyPaste."
+        alert.informativeText = "andPaste needs Accessibility access to paste selected clipboard items into the active app. Open System Settings and enable andPaste."
         alert.addButton(withTitle: "Open Settings")
         alert.addButton(withTitle: "Cancel")
 
@@ -72,7 +72,7 @@ final class PasteController {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         return baseURL
-            .appendingPathComponent("CopyPaste", isDirectory: true)
+            .appendingPathComponent("andPaste", isDirectory: true)
             .appendingPathComponent(accessibilityPromptMarkerFileName)
     }
 

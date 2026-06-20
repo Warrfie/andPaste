@@ -5,7 +5,7 @@ ROOT_DIR="$(pwd)"
 SWIFTPM_CACHE_DIR="$ROOT_DIR/.build/swiftpm-cache"
 SWIFTPM_SCRATCH_DIR="$ROOT_DIR/.build/swiftpm-scratch"
 CLANG_CACHE_DIR="$ROOT_DIR/.build/clang-module-cache"
-PACKAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/copypaste-tests.XXXXXX")"
+PACKAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/andpaste-tests.XXXXXX")"
 
 cleanup() {
   rm -rf "$PACKAGE_DIR"
@@ -22,20 +22,20 @@ cat > "$PACKAGE_DIR/Package.swift" <<'SWIFTPM'
 import PackageDescription
 
 let package = Package(
-    name: "CopyPasteTests",
+    name: "andPasteTests",
     platforms: [
         .macOS(.v13)
     ],
     products: [],
     targets: [
         .target(
-            name: "CopyPasteCore",
-            path: "Sources/CopyPaste"
+            name: "andPasteCore",
+            path: "Sources/andPaste"
         ),
         .testTarget(
-            name: "CopyPasteTests",
-            dependencies: ["CopyPasteCore"],
-            path: "Tests/CopyPasteTests"
+            name: "andPasteTests",
+            dependencies: ["andPasteCore"],
+            path: "Tests/andPasteTests"
         )
     ]
 )

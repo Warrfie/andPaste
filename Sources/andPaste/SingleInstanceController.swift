@@ -3,8 +3,8 @@ import Foundation
 
 @MainActor
 final class SingleInstanceController {
-    private static let lockFileName = "com.warrfie.copypaste.lock"
-    private static let showHistoryNotificationName = Notification.Name("com.warrfie.copypaste.showHistory")
+    private static let lockFileName = "com.warrfie.andpaste.lock"
+    private static let showHistoryNotificationName = Notification.Name("com.warrfie.andpaste.showHistory")
 
     private var lockFileDescriptor: Int32 = -1
     private var observer: NSObjectProtocol?

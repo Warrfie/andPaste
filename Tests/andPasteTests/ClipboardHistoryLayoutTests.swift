@@ -1,6 +1,6 @@
 import AppKit
 import XCTest
-@testable import CopyPasteCore
+@testable import andPasteCore
 
 final class ClipboardHistoryLayoutTests: XCTestCase {
     func testRowHeightDependsOnContentType() {

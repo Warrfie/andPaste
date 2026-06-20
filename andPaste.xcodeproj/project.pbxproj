@@ -14,7 +14,7 @@
 		B00000000000000000000005 /* ClipboardHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000005 /* ClipboardHistoryView.swift */; };
 		B00000000000000000000006 /* ClipboardItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000006 /* ClipboardItem.swift */; };
 		B00000000000000000000007 /* ClipboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000007 /* ClipboardStore.swift */; };
-		B00000000000000000000008 /* CopyPasteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000008 /* CopyPasteApp.swift */; };
+		B00000000000000000000008 /* andPasteApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000008 /* andPasteApp.swift */; };
 		B00000000000000000000009 /* HistoryWindowSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000009 /* HistoryWindowSupport.swift */; };
 		B00000000000000000000010 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000010 /* HotkeyManager.swift */; };
 		B00000000000000000000011 /* LaunchAtLoginController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000011 /* LaunchAtLoginController.swift */; };
@@ -23,7 +23,7 @@
 		B00000000000000000000014 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000014 /* SettingsView.swift */; };
 		B00000000000000000000015 /* SingleInstanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000015 /* SingleInstanceController.swift */; };
 		B00000000000000000000016 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000016 /* AppIcon.icns */; };
-		B00000000000000000000017 /* CopyPasteLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000019 /* CopyPasteLauncher.swift */; };
+		B00000000000000000000017 /* andPasteLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000019 /* andPasteLauncher.swift */; };
 		B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000023 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
@@ -35,7 +35,7 @@
 		C00000000000000000000005 /* ClipboardHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardHistoryView.swift; sourceTree = "<group>"; };
 		C00000000000000000000006 /* ClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardItem.swift; sourceTree = "<group>"; };
 		C00000000000000000000007 /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
-		C00000000000000000000008 /* CopyPasteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPasteApp.swift; sourceTree = "<group>"; };
+		C00000000000000000000008 /* andPasteApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = andPasteApp.swift; sourceTree = "<group>"; };
 		C00000000000000000000009 /* HistoryWindowSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryWindowSupport.swift; sourceTree = "<group>"; };
 		C00000000000000000000010 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		C00000000000000000000011 /* LaunchAtLoginController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginController.swift; sourceTree = "<group>"; };
@@ -45,11 +45,11 @@
 		C00000000000000000000015 /* SingleInstanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SingleInstanceController.swift; sourceTree = "<group>"; };
 		C00000000000000000000016 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		C00000000000000000000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C00000000000000000000018 /* CopyPaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopyPaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C00000000000000000000019 /* CopyPasteLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPasteLauncher.swift; sourceTree = "<group>"; };
+		C00000000000000000000018 /* andPaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = andPaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C00000000000000000000019 /* andPasteLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = andPasteLauncher.swift; sourceTree = "<group>"; };
 		C00000000000000000000020 /* Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.xcconfig; sourceTree = "<group>"; };
 		C00000000000000000000021 /* Signing.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig.example; sourceTree = "<group>"; };
-		C00000000000000000000022 /* CopyPaste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CopyPaste.entitlements; sourceTree = "<group>"; };
+		C00000000000000000000022 /* andPaste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = andPaste.entitlements; sourceTree = "<group>"; };
 		C00000000000000000000023 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -67,8 +67,8 @@
 		E00000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
-				E00000000000000000000002 /* CopyPaste */,
-				E00000000000000000000006 /* CopyPasteLauncher */,
+				E00000000000000000000002 /* Sources/andPaste */,
+				E00000000000000000000006 /* Sources/andPasteLauncher */,
 				E00000000000000000000003 /* Resources */,
 				E00000000000000000000007 /* Config */,
 				E00000000000000000000004 /* Xcode */,
@@ -76,7 +76,7 @@
 			);
 			sourceTree = "<group>";
 		};
-		E00000000000000000000002 /* CopyPaste */ = {
+		E00000000000000000000002 /* Sources/andPaste */ = {
 			isa = PBXGroup;
 			children = (
 				C00000000000000000000001 /* AppModel.swift */,
@@ -86,7 +86,7 @@
 				C00000000000000000000005 /* ClipboardHistoryView.swift */,
 				C00000000000000000000006 /* ClipboardItem.swift */,
 				C00000000000000000000007 /* ClipboardStore.swift */,
-				C00000000000000000000008 /* CopyPasteApp.swift */,
+				C00000000000000000000008 /* andPasteApp.swift */,
 				C00000000000000000000009 /* HistoryWindowSupport.swift */,
 				C00000000000000000000010 /* HotkeyManager.swift */,
 				C00000000000000000000011 /* LaunchAtLoginController.swift */,
@@ -95,7 +95,7 @@
 				C00000000000000000000014 /* SettingsView.swift */,
 				C00000000000000000000015 /* SingleInstanceController.swift */,
 			);
-			path = Sources/CopyPaste;
+			path = Sources/andPaste;
 			sourceTree = "<group>";
 		};
 		E00000000000000000000003 /* Resources */ = {
@@ -111,7 +111,7 @@
 			isa = PBXGroup;
 			children = (
 				C00000000000000000000017 /* Info.plist */,
-				C00000000000000000000022 /* CopyPaste.entitlements */,
+				C00000000000000000000022 /* andPaste.entitlements */,
 			);
 			path = Xcode;
 			sourceTree = "<group>";
@@ -119,17 +119,17 @@
 		E00000000000000000000005 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C00000000000000000000018 /* CopyPaste.app */,
+				C00000000000000000000018 /* andPaste.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E00000000000000000000006 /* CopyPasteLauncher */ = {
+		E00000000000000000000006 /* Sources/andPasteLauncher */ = {
 			isa = PBXGroup;
 			children = (
-				C00000000000000000000019 /* CopyPasteLauncher.swift */,
+				C00000000000000000000019 /* andPasteLauncher.swift */,
 			);
-			path = Sources/CopyPasteLauncher;
+			path = Sources/andPasteLauncher;
 			sourceTree = "<group>";
 		};
 		E00000000000000000000007 /* Config */ = {
@@ -144,9 +144,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A00000000000000000000001 /* CopyPaste */ = {
+		A00000000000000000000001 /* andPaste */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = F00000000000000000000002 /* Build configuration list for PBXNativeTarget "CopyPaste" */;
+			buildConfigurationList = F00000000000000000000002 /* Build configuration list for PBXNativeTarget "andPaste" */;
 			buildPhases = (
 				D00000000000000000000002 /* Sources */,
 				D00000000000000000000001 /* Frameworks */,
@@ -156,9 +156,9 @@
 			);
 			dependencies = (
 			);
-			name = CopyPaste;
-			productName = CopyPaste;
-			productReference = C00000000000000000000018 /* CopyPaste.app */;
+			name = andPaste;
+			productName = andPaste;
+			productReference = C00000000000000000000018 /* andPaste.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -169,14 +169,14 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1530;
-				LastUpgradeCheck = 1530;
+				LastUpgradeCheck = 1640;
 				TargetAttributes = {
 					A00000000000000000000001 = {
 						CreatedOnToolsVersion = 15.3;
 					};
 				};
 			};
-			buildConfigurationList = F00000000000000000000001 /* Build configuration list for PBXProject "CopyPaste" */;
+			buildConfigurationList = F00000000000000000000001 /* Build configuration list for PBXProject "andPaste" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -189,7 +189,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				A00000000000000000000001 /* CopyPaste */,
+				A00000000000000000000001 /* andPaste */,
 			);
 		};
 /* End PBXProject section */
@@ -218,7 +218,7 @@
 				B00000000000000000000005 /* ClipboardHistoryView.swift in Sources */,
 				B00000000000000000000006 /* ClipboardItem.swift in Sources */,
 				B00000000000000000000007 /* ClipboardStore.swift in Sources */,
-				B00000000000000000000008 /* CopyPasteApp.swift in Sources */,
+				B00000000000000000000008 /* andPasteApp.swift in Sources */,
 				B00000000000000000000009 /* HistoryWindowSupport.swift in Sources */,
 				B00000000000000000000010 /* HotkeyManager.swift in Sources */,
 				B00000000000000000000011 /* LaunchAtLoginController.swift in Sources */,
@@ -226,7 +226,7 @@
 				B00000000000000000000013 /* PasteMode.swift in Sources */,
 				B00000000000000000000014 /* SettingsView.swift in Sources */,
 				B00000000000000000000015 /* SingleInstanceController.swift in Sources */,
-				B00000000000000000000017 /* CopyPasteLauncher.swift in Sources */,
+				B00000000000000000000017 /* andPasteLauncher.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -262,7 +262,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "$(inherited)";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -319,7 +321,9 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "$(inherited)";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -344,11 +348,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Xcode/andPaste.entitlements;
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
-				CODE_SIGN_ENTITLEMENTS = Xcode/CopyPaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "$(inherited)";
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -357,9 +361,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = com.warrfie.copypaste;
-				PRODUCT_NAME = CopyPaste;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.warrfie.andpaste;
+				PRODUCT_NAME = andPaste;
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -370,10 +374,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C00000000000000000000020 /* Signing.xcconfig */;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = Xcode/CopyPaste.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Xcode/andPaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
-				DEVELOPMENT_TEAM = "$(inherited)";
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -382,9 +386,9 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.2;
-				PRODUCT_BUNDLE_IDENTIFIER = com.warrfie.copypaste;
-				PRODUCT_NAME = CopyPaste;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.warrfie.andpaste;
+				PRODUCT_NAME = andPaste;
 				SDKROOT = macosx;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -394,7 +398,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		F00000000000000000000001 /* Build configuration list for PBXProject "CopyPaste" */ = {
+		F00000000000000000000001 /* Build configuration list for PBXProject "andPaste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F00000000000000000000003 /* Debug */,
@@ -403,7 +407,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		F00000000000000000000002 /* Build configuration list for PBXNativeTarget "CopyPaste" */ = {
+		F00000000000000000000002 /* Build configuration list for PBXNativeTarget "andPaste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				F00000000000000000000005 /* Debug */,

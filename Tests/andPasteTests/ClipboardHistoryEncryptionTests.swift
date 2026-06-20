@@ -1,7 +1,7 @@
 import CryptoKit
 import Foundation
 import XCTest
-@testable import CopyPasteCore
+@testable import andPasteCore
 
 final class ClipboardHistoryEncryptionTests: XCTestCase {
     func testEncryptDecryptRoundTrip() throws {

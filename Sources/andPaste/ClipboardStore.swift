@@ -26,8 +26,8 @@ final class ClipboardStore: ObservableObject {
     ]
     private static let saveCoalescingDelay: TimeInterval = 0.25
     private let persistenceURL: URL
-    private let loadQueue = DispatchQueue(label: "com.warrfie.copypaste.history-load", qos: .utility)
-    private let saveQueue = DispatchQueue(label: "com.warrfie.copypaste.history-save", qos: .utility)
+    private let loadQueue = DispatchQueue(label: "com.warrfie.andpaste.history-load", qos: .utility)
+    private let saveQueue = DispatchQueue(label: "com.warrfie.andpaste.history-save", qos: .utility)
     private var encryptionKey: SymmetricKey?
     private var persistedHistoryLoadState: PersistedHistoryLoadState = .notStarted
     private var lastChangeCount: Int
@@ -306,7 +306,7 @@ final class ClipboardStore: ObservableObject {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
         return baseURL
-            .appendingPathComponent("CopyPaste", isDirectory: true)
+            .appendingPathComponent("andPaste", isDirectory: true)
     }
 
     static func readCurrentItem(from pasteboard: NSPasteboard) -> ClipboardItem? {

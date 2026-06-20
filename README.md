@@ -1,15 +1,15 @@
-# CopyPaste
+# andPaste
 
 Simple macOS clipboard history, close to Windows `Win+V`.
 
 ## Download
 
-Download the latest signed DMG from the [latest GitHub release](https://github.com/Warrfie/CopyPaste/releases/latest).
+Download the latest signed DMG from the [latest GitHub release](https://github.com/Warrfie/andPaste/releases/latest).
 
-1. Download `copypaste-<version>.dmg`.
-2. Open the DMG and drag `CopyPaste.app` to `Applications`.
-3. Launch CopyPaste from Applications.
-4. Grant Accessibility access when macOS asks. CopyPaste needs it to paste selected history items into the app you were using.
+1. Download `andpaste-<version>.dmg`.
+2. Open the DMG and drag `andPaste.app` to `Applications`.
+3. Launch andPaste from Applications.
+4. Grant Accessibility access when macOS asks. andPaste needs it to paste selected history items into the app you were using.
 
 If macOS warns that the app was downloaded from the internet, choose **Open**. Release DMGs are built from `v*` tags by GitHub Actions.
 
@@ -27,7 +27,7 @@ If macOS warns that the app was downloaded from the internet, choose **Open**. R
 
 ## Privacy
 
-CopyPaste does not send clipboard contents, images, file paths, settings, or usage data to external servers. See [docs/PRIVACY.md](docs/PRIVACY.md).
+andPaste does not send clipboard contents, images, file paths, settings, or usage data to external servers. See [docs/PRIVACY.md](docs/PRIVACY.md).
 
 ## Local Development
 
@@ -37,7 +37,7 @@ CopyPaste does not send clipboard contents, images, file paths, settings, or usa
 sh scripts/run-app.sh
 ```
 
-This builds and opens `.build/CopyPaste.app` through LaunchServices, so the app runs as a native menu bar app instead of a console-launched executable.
+This builds and opens `.build/andPaste.app` through LaunchServices, so the app runs as a native menu bar app instead of a console-launched executable.
 
 ### Build Only
 
@@ -45,7 +45,7 @@ This builds and opens `.build/CopyPaste.app` through LaunchServices, so the app 
 sh scripts/build-app.sh
 ```
 
-Avoid launching `.build/release/CopyPaste` directly. That is the raw SwiftPM executable and macOS treats it like a console program.
+Avoid launching `.build/release/andPaste` directly. That is the raw SwiftPM executable and macOS treats it like a console program.
 
 ### Local Signing
 

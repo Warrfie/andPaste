@@ -100,7 +100,7 @@ final class AppModel: ObservableObject {
 
         let hostingController = NSHostingController(rootView: SettingsView(model: self))
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "CopyPaste Settings"
+        window.title = "andPaste Settings"
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         let delegate = SettingsWindowDelegate { [weak self] in

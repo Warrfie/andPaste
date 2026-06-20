@@ -3,7 +3,7 @@ import Foundation
 import Security
 
 enum ClipboardHistoryEncryption {
-    private static let magic = Data("CopyPasteHistory.v1\n".utf8)
+    private static let magic = Data("andPasteHistory.v1\n".utf8)
 
     static func encrypt(_ data: Data, using key: SymmetricKey) throws -> Data {
         let sealedBox = try AES.GCM.seal(data, using: key)
@@ -31,7 +31,7 @@ enum ClipboardHistoryEncryptionError: Error {
 }
 
 enum ClipboardHistoryKeychain {
-    private static let service = "com.warrfie.CopyPaste.clipboard-history"
+    private static let service = "com.warrfie.andPaste.clipboard-history"
     private static let account = "history-encryption-key"
     private static let keyByteCount = 32
 

@@ -1,9 +1,9 @@
 #!/bin/zsh
 set -euo pipefail
 
-APP_NAME="${APP_NAME:-CopyPaste.app}"
-DMG_BASENAME="${DMG_BASENAME:-copypaste-macos}"
-VOLUME_NAME="${VOLUME_NAME:-CopyPaste}"
+APP_NAME="${APP_NAME:-andPaste.app}"
+DMG_BASENAME="${DMG_BASENAME:-andpaste-macos}"
+VOLUME_NAME="${VOLUME_NAME:-andPaste}"
 OUTPUT_DIR="${OUTPUT_DIR:-$PWD/build/artifacts}"
 DMG_WINDOW_WIDTH="${DMG_WINDOW_WIDTH:-660}"
 DMG_WINDOW_HEIGHT="${DMG_WINDOW_HEIGHT:-430}"
@@ -18,7 +18,7 @@ DMG_LAYOUT_REQUIRED="${DMG_LAYOUT_REQUIRED:-$SIGNING_ALLOWED}"
 OPEN_FINAL_DMG="${OPEN_FINAL_DMG:-NO}"
 CODE_SIGN_IDENTITY_VALUE="${CODE_SIGN_IDENTITY_VALUE:-}"
 DMG_CODE_SIGN_IDENTITY="${DMG_CODE_SIGN_IDENTITY:-$CODE_SIGN_IDENTITY_VALUE}"
-ENTITLEMENTS_PATH="${ENTITLEMENTS_PATH:-$PWD/Xcode/CopyPaste.entitlements}"
+ENTITLEMENTS_PATH="${ENTITLEMENTS_PATH:-$PWD/Xcode/andPaste.entitlements}"
 KEYCHAIN_PATH="${KEYCHAIN_PATH:-}"
 ASC_API_KEY_ID="${ASC_API_KEY_ID:-}"
 ASC_API_ISSUER_ID="${ASC_API_ISSUER_ID:-}"
@@ -27,7 +27,7 @@ ASC_API_KEY_P8_BASE64="${ASC_API_KEY_P8_BASE64:-}"
 DMG_WORK_DIR="${DMG_WORK_DIR:-}"
 DMG_WORK_DIR_CREATED="NO"
 if [[ -z "$DMG_WORK_DIR" ]]; then
-  DMG_WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/copypaste-dmg.XXXXXX")"
+  DMG_WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/andpaste-dmg.XXXXXX")"
   DMG_WORK_DIR_CREATED="YES"
 fi
 
@@ -217,7 +217,7 @@ if [[ "$NOTARIZATION_ALLOWED" == "YES" ]]; then
   : "${ASC_API_KEY_P8_BASE64:?Set ASC_API_KEY_P8_BASE64 for notarization}"
 
   umask 077
-  NOTARY_KEY_PATH="$(mktemp "${TMPDIR:-/tmp}/copypaste-notary-key.XXXXXX")"
+  NOTARY_KEY_PATH="$(mktemp "${TMPDIR:-/tmp}/andpaste-notary-key.XXXXXX")"
   printf '%s' "$ASC_API_KEY_P8_BASE64" | base64 --decode > "$NOTARY_KEY_PATH"
 
   xcrun notarytool submit "$DMG_PATH" \

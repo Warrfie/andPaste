@@ -14,8 +14,8 @@ enum AppLog {
             ?? FileManager.default.temporaryDirectory
         return baseURL
             .appendingPathComponent("Logs", isDirectory: true)
-            .appendingPathComponent("CopyPaste", isDirectory: true)
-            .appendingPathComponent("CopyPaste.log")
+            .appendingPathComponent("andPaste", isDirectory: true)
+            .appendingPathComponent("andPaste.log")
     }
 
     static func write(_ message: String) {
@@ -43,12 +43,12 @@ enum AppLog {
                 try data.write(to: fileURL, options: .atomic)
             }
         } catch {
-            NSLog("CopyPaste log write failed: %@", error.localizedDescription)
+            NSLog("andPaste log write failed: %@", error.localizedDescription)
         }
     }
 }
 
-final class CopyPasteApplicationDelegate: NSObject, NSApplicationDelegate {
+final class andPasteApplicationDelegate: NSObject, NSApplicationDelegate {
     private var model: AppModel?
     private var statusItemController: StatusItemController?
 
@@ -97,7 +97,7 @@ private final class StatusItemController: NSObject {
 
     private func configureButton() {
         guard let button = statusItem.button else { return }
-        button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "CopyPaste")
+        button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "andPaste")
         button.imagePosition = .imageLeft
         button.font = .systemFont(ofSize: 11, weight: .semibold)
         updateButton(for: model.hotkeyShortcut)
@@ -107,7 +107,7 @@ private final class StatusItemController: NSObject {
         guard let button = statusItem.button else { return }
         switch shortcut {
         case .fnV:
-            button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "CopyPaste")
+            button.image = NSImage(systemSymbolName: "globe", accessibilityDescription: "andPaste")
             button.title = "+ V"
         case .controlOptionV:
             button.image = nil
@@ -124,9 +124,9 @@ private final class StatusItemController: NSObject {
         menu.addItem(menuItem("Clear History", action: #selector(clearHistory), symbolName: "trash"))
         menu.addItem(menuItem("Settings", action: #selector(showSettings), symbolName: "gearshape"))
         menu.addItem(.separator())
-        menu.addItem(menuItem("About CopyPaste", action: #selector(showAbout), symbolName: "info.circle"))
+        menu.addItem(menuItem("About andPaste", action: #selector(showAbout), symbolName: "info.circle"))
         menu.addItem(.separator())
-        let quitItem = menuItem("Quit CopyPaste", action: #selector(quit), symbolName: "power")
+        let quitItem = menuItem("Quit andPaste", action: #selector(quit), symbolName: "power")
         quitItem.keyEquivalent = "q"
         quitItem.keyEquivalentModifierMask = [.command]
         menu.addItem(quitItem)
@@ -165,10 +165,10 @@ private final class StatusItemController: NSObject {
         }
 
         let hostingController = NSHostingController(
-            rootView: AboutSceneView(versionTitle: CopyPasteVersion.current.title)
+            rootView: AboutSceneView(versionTitle: andPasteVersion.current.title)
         )
         let window = NSWindow(contentViewController: hostingController)
-        window.title = "About CopyPaste"
+        window.title = "About andPaste"
         window.styleMask = [.titled, .closable]
         window.isReleasedWhenClosed = false
         window.center()
@@ -182,12 +182,12 @@ private final class StatusItemController: NSObject {
     }
 }
 
-private struct CopyPasteVersion {
-    static var current: CopyPasteVersion {
+private struct andPasteVersion {
+    static var current: andPasteVersion {
         let bundle = Bundle.main
         let shortVersion = bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.1.0"
         let buildVersion = bundle.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
-        return CopyPasteVersion(shortVersion: shortVersion, buildVersion: buildVersion)
+        return andPasteVersion(shortVersion: shortVersion, buildVersion: buildVersion)
     }
 
     let shortVersion: String
@@ -200,8 +200,8 @@ private struct CopyPasteVersion {
 
 private struct AboutSceneView: View {
     let versionTitle: String
-    private let privacyPolicyURL = URL(string: "https://github.com/Warrfie/CopyPaste/blob/main/docs/PRIVACY.md")
-    private let repositoryURL = URL(string: "https://github.com/Warrfie/CopyPaste")
+    private let privacyPolicyURL = URL(string: "https://github.com/Warrfie/andPaste/blob/main/docs/PRIVACY.md")
+    private let repositoryURL = URL(string: "https://github.com/Warrfie/andPaste")
 
     var body: some View {
         VStack(spacing: 16) {
@@ -210,7 +210,7 @@ private struct AboutSceneView: View {
                 .frame(width: 56, height: 56)
 
             VStack(spacing: 6) {
-                Text("CopyPaste")
+                Text("andPaste")
                     .font(.title2.weight(.semibold))
                 Text(versionTitle)
                     .font(.subheadline)

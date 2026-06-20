@@ -40,14 +40,14 @@ jobs:
           MACOS_CERTIFICATE_P12_BASE64: ${{ secrets.MACOS_CERTIFICATE_P12_BASE64 }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
           KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-          KEYCHAIN_PATH: ${{ runner.temp }}/copypaste-signing.keychain-db
+          KEYCHAIN_PATH: ${{ runner.temp }}/andpaste-signing.keychain-db
         run: ./scripts/install-ci-macos-certificate.sh
 
       - name: Build DMG
         env:
-          DMG_BASENAME: copypaste-${{ github.ref_name }}
+          DMG_BASENAME: andpaste-${{ github.ref_name }}
           OUTPUT_DIR: ${{ github.workspace }}/build/artifacts
-          KEYCHAIN_PATH: ${{ runner.temp }}/copypaste-signing.keychain-db
+          KEYCHAIN_PATH: ${{ runner.temp }}/andpaste-signing.keychain-db
           SIGNING_ALLOWED: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.signed) && 'YES' || 'NO' }}
           NOTARIZATION_ALLOWED: ${{ (startsWith(github.ref, 'refs/tags/v') || inputs.signed) && 'YES' || 'NO' }}
           CODE_SIGN_IDENTITY_VALUE: AUTO
@@ -58,12 +58,12 @@ jobs:
 
       - name: Delete Temporary Keychain
         if: always()
-        run: security delete-keychain "$RUNNER_TEMP/copypaste-signing.keychain-db" || true
+        run: security delete-keychain "$RUNNER_TEMP/andpaste-signing.keychain-db" || true
 
       - name: Upload DMG Artifact
         uses: actions/upload-artifact@v7
         with:
-          name: copypaste-dmg-${{ github.ref_name }}
+          name: andpaste-dmg-${{ github.ref_name }}
           path: |
             build/artifacts/*.dmg
             build/artifacts/*.sha256

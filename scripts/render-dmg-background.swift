@@ -80,7 +80,7 @@ roundedRect(
 context.restoreGState()
 
 drawString(
-    "CopyPaste",
+    "andPaste",
     in: CGRect(x: 0, y: 350, width: canvasSize.width, height: 34),
     size: 26,
     weight: .semibold,

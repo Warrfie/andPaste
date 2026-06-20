@@ -16,7 +16,7 @@ final class ClipboardHistoryPanelController {
             backing: .buffered,
             defer: false
         )
-        panel.title = "CopyPaste"
+        panel.title = "andPaste"
         panel.isReleasedWhenClosed = false
         panel.level = .statusBar
         panel.isFloatingPanel = true

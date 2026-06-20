@@ -2,12 +2,12 @@
 set -eu
 
 BUILD_DIR="$(pwd)/.build/app"
-APP_DIR=".build/CopyPaste.app"
-BUILT_APP="$BUILD_DIR/Build/Products/Release/CopyPaste.app"
+APP_DIR=".build/andPaste.app"
+BUILT_APP="$BUILD_DIR/Build/Products/Release/andPaste.app"
 
 xcodebuild \
-  -project CopyPaste.xcodeproj \
-  -scheme CopyPaste \
+  -project andPaste.xcodeproj \
+  -scheme andPaste \
   -configuration Release \
   -derivedDataPath "$BUILD_DIR" \
   build >&2

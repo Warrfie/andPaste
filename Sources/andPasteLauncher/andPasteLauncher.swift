@@ -1,12 +1,12 @@
 import AppKit
 
 @main
-enum CopyPasteLauncherApp {
-    private static var appDelegate: CopyPasteApplicationDelegate?
+enum andPasteLauncherApp {
+    private static var appDelegate: andPasteApplicationDelegate?
 
     static func main() {
         let application = NSApplication.shared
-        let delegate = CopyPasteApplicationDelegate()
+        let delegate = andPasteApplicationDelegate()
         appDelegate = delegate
         application.delegate = delegate
         application.run()
