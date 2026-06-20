@@ -23,6 +23,12 @@ For a local unsigned DMG smoke test:
 ./scripts/build-dmg.sh
 ```
 
+For a Mac App Store / TestFlight export:
+
+```sh
+DEVELOPMENT_TEAM_VALUE=<APPLE_TEAM_ID> ./scripts/build-appstore.sh
+```
+
 ## Publish
 
 Create and push a version tag:
@@ -42,3 +48,7 @@ GitHub Actions will run tests, build the DMG, sign/notarize when release secrets
 4. Launch it and grant Accessibility access.
 5. Copy text, an image, and a file/folder.
 6. Open history with `Fn + V` and paste one item into another app.
+
+## Mac App Store
+
+Use [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for App Store Connect prerequisites, export commands, metadata, privacy answers, and review notes.

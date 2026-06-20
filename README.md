@@ -92,4 +92,14 @@ The script creates a temporary SwiftPM manifest only for the test run, then remo
 
 GitHub Actions builds CI on push/PR and creates DMG release artifacts from tags named `v*`. Signed and notarized release builds use repository secrets only; no Team ID, certificates, or App Store Connect credentials are stored in the repo.
 
+### App Store Build
+
+For Mac App Store or TestFlight preparation, use the App Store archive/export path:
+
+```sh
+DEVELOPMENT_TEAM_VALUE=<APPLE_TEAM_ID> ./scripts/build-appstore.sh
+```
+
+This creates an App Store Connect export under `build/appstore/`. Use this path for App Store Connect submission, not the Developer ID DMG path.
+
 See [docs/RELEASE.md](docs/RELEASE.md) for the release checklist.
