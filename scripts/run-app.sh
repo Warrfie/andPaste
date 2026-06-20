@@ -2,4 +2,4 @@
 set -eu
 
 APP_DIR="$(sh scripts/build-app.sh)"
-open "$APP_DIR"
+open -n "$APP_DIR"
