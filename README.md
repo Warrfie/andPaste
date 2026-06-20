@@ -1,6 +1,25 @@
 # andPaste
 
-Simple macOS clipboard history, close to Windows `Win+V`.
+<p align="center">
+  <img src="Resources/Assets.xcassets/AppIcon.appiconset/icon_128x128.png" alt="andPaste icon" width="96" height="96" />
+</p>
+
+<p align="center">
+  Local encrypted clipboard history for macOS.<br/>
+  Built as a lightweight menu bar app with text, image, file, and link support.
+</p>
+
+<p align="center">
+  <a href="https://github.com/Warrfie/andPaste/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Warrfie/andPaste/ci.yml?branch=main&label=CI&style=flat-square"></a>
+  <a href="https://github.com/Warrfie/andPaste/actions/workflows/release-artifacts.yml"><img alt="release artifacts" src="https://img.shields.io/github/actions/workflow/status/Warrfie/andPaste/release-artifacts.yml?label=Release&style=flat-square"></a>
+  <img alt="platform" src="https://img.shields.io/badge/platform-macOS%2013%2B-111827?style=flat-square">
+  <img alt="ui" src="https://img.shields.io/badge/UI-SwiftUI%20%2B%20AppKit-EA580C?style=flat-square">
+  <img alt="sandbox" src="https://img.shields.io/badge/App%20Sandbox-enabled-0F766E?style=flat-square">
+  <img alt="privacy" src="https://img.shields.io/badge/privacy-local%20only-2563EB?style=flat-square">
+  <img alt="license" src="https://img.shields.io/badge/license-MIT-0F766E?style=flat-square">
+</p>
+
+`andPaste` is a simple macOS clipboard history app, close to Windows `Win+V`.
 
 ## Download
 
