@@ -42,5 +42,5 @@ Use these answers as the basis for App Privacy metadata:
 The public privacy policy URL should point to:
 
 ```text
-https://github.com/Warrfie/andPaste/releases/latest
+https://github.com/Warrfie/andPaste/blob/main/docs/PRIVACY.md
 ```

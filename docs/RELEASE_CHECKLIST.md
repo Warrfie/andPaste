@@ -66,7 +66,7 @@ Minimum metadata to prepare:
 
 - App name: `andPaste`
 - Category: Utilities
-- Privacy policy URL: `https://github.com/Warrfie/andPaste/releases/latest`
+- Privacy policy URL: `https://github.com/Warrfie/andPaste/blob/main/docs/PRIVACY.md`
 - Review notes: use `docs/APP_REVIEW_NOTES.md`
 - Screenshots showing the menu bar item, history window with text/image/file rows, Settings, and Accessibility prompt flow
 
