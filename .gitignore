@@ -3,6 +3,7 @@
 .swiftpm/
 Package.resolved
 build/
+.deriveddata-appstore/
 
 # Xcode
 DerivedData/
@@ -10,12 +11,16 @@ DerivedData/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcresult
 Config/Signing.local.xcconfig
 
 # App bundles and archives
 *.app
 *.dSYM
 *.xcarchive
+*.ipa
+*.pkg
+*.xcdistributionlogs
 
 # macOS
 .DS_Store
