@@ -19,7 +19,7 @@ final class ClipboardItemTests: XCTestCase {
             pasteboardType: NSPasteboard.PasteboardType.rtf.rawValue,
             data: Data([1, 2, 3])
         )
-        let item = ClipboardItem(content: .text("hello", richText: richText))
+        let item = ClipboardItem(content: .text("hello", richTextPayloads: [richText]))
 
         XCTAssertEqual(item.contentType, .text)
         XCTAssertEqual(item.displayType, .text)
@@ -54,6 +54,38 @@ final class ClipboardItemTests: XCTestCase {
         XCTAssertEqual(item.fingerprint, "image:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81")
     }
 
+    @MainActor
+    func testPNGDataUsesFallbackImageData() {
+        let bitmap = NSBitmapImageRep(
+            bitmapDataPlanes: nil,
+            pixelsWide: 2,
+            pixelsHigh: 2,
+            bitsPerSample: 8,
+            samplesPerPixel: 4,
+            hasAlpha: true,
+            isPlanar: false,
+            colorSpaceName: .deviceRGB,
+            bytesPerRow: 0,
+            bitsPerPixel: 0
+        )
+        let fallbackData = bitmap?.representation(using: .png, properties: [:]) ?? Data()
+        let image = NSImage(data: fallbackData) ?? NSImage(size: NSSize(width: 2, height: 2))
+
+        let pngData = ClipboardStore.pngData(for: image, fallbackData: fallbackData)
+
+        XCTAssertNotNil(pngData)
+        XCTAssertTrue(pngData?.starts(with: Data([0x89, 0x50, 0x4E, 0x47])) == true)
+    }
+
+    @MainActor
+    func testImageExportURLUsesPNGFileName() {
+        let date = Date(timeIntervalSince1970: 1_700_000_000)
+        let url = ClipboardStore.imageExportURL(in: URL(fileURLWithPath: "/tmp"), date: date)
+
+        XCTAssertEqual(url.pathExtension, "png")
+        XCTAssertTrue(url.lastPathComponent.hasPrefix("andPaste Image "))
+    }
+
     func testAllContentTypesSupportPlainTextPaste() {
         let textItem = ClipboardItem(content: .text("hello"))
         let image = NSImage(size: NSSize(width: 2, height: 2))
@@ -77,6 +109,12 @@ final class ClipboardItemTests: XCTestCase {
         XCTAssertEqual(fileItem.plainTextRepresentation, "/tmp/one.txt\n/tmp/two.pdf")
     }
 
+    func testPlainTextRepresentationNormalizesChecklistGlyphs() {
+        let item = ClipboardItem(content: .text("☐ не доне\n☑ доне\n  ✔ nested"))
+
+        XCTAssertEqual(item.plainTextRepresentation, "- [ ] не доне\n- [x] доне\n  - [x] nested")
+    }
+
     @MainActor
     func testLeadingSlashStringClassifiesAsTextWhenPasteboardTypeIsString() {
         let item = ClipboardStore.makeItem(
@@ -91,25 +129,54 @@ final class ClipboardItemTests: XCTestCase {
     }
 
     @MainActor
-    func testStringPasteboardItemKeepsRichTextPayload() {
-        let richText = ClipboardItem.RichTextPayload(
+    func testStringPasteboardItemKeepsRichTextPayloads() {
+        let rtf = ClipboardItem.RichTextPayload(
+            pasteboardType: NSPasteboard.PasteboardType.rtf.rawValue,
+            data: Data([4, 5, 6])
+        )
+        let html = ClipboardItem.RichTextPayload(
+            pasteboardType: NSPasteboard.PasteboardType.html.rawValue,
+            data: Data("<b>formatted</b>".utf8)
+        )
+        let item = ClipboardStore.makeItem(
+            fileURLs: nil,
+            string: "- [ ] formatted",
+            richTextPayloads: [rtf, html],
+            image: nil,
+            pasteboardTypes: [.rtf, .html, .string]
+        )
+
+        guard case .text(let text, let storedRichTextPayloads) = item?.content else {
+            XCTFail("Expected text item")
+            return
+        }
+        XCTAssertEqual(text, "- [ ] formatted")
+        XCTAssertEqual(storedRichTextPayloads, [rtf, html])
+    }
+
+    @MainActor
+    func testStringPasteboardItemKeepsSourceRichTextOrder() {
+        let html = ClipboardItem.RichTextPayload(
+            pasteboardType: NSPasteboard.PasteboardType.html.rawValue,
+            data: Data("<b>formatted</b>".utf8)
+        )
+        let rtf = ClipboardItem.RichTextPayload(
             pasteboardType: NSPasteboard.PasteboardType.rtf.rawValue,
             data: Data([4, 5, 6])
         )
         let item = ClipboardStore.makeItem(
             fileURLs: nil,
-            string: "- [ ] formatted",
-            richText: richText,
+            string: "formatted",
+            richTextPayloads: [html, rtf],
             image: nil,
-            pasteboardTypes: [.rtf, .string]
+            pasteboardTypes: [.html, .rtf, .string]
         )
 
-        guard case .text(let text, let storedRichText) = item?.content else {
+        guard case .text(_, let storedRichTextPayloads) = item?.content else {
             XCTFail("Expected text item")
             return
         }
-        XCTAssertEqual(text, "- [ ] formatted")
-        XCTAssertEqual(storedRichText, richText)
+        XCTAssertEqual(storedRichTextPayloads, [html, rtf])
     }
 
     @MainActor

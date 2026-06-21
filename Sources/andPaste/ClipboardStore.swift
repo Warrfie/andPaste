@@ -26,8 +26,16 @@ final class ClipboardStore: ObservableObject {
     ]
     private static let richTextPasteboardTypes: [NSPasteboard.PasteboardType] = [
         .rtf,
-        NSPasteboard.PasteboardType("NeXT Rich Text Format v1.0 pasteboard type")
+        NSPasteboard.PasteboardType("NeXT Rich Text Format v1.0 pasteboard type"),
+        .rtfd,
+        NSPasteboard.PasteboardType("com.apple.flat-rtfd"),
+        .html,
+        NSPasteboard.PasteboardType("Apple HTML pasteboard type"),
+        NSPasteboard.PasteboardType("com.apple.webarchive"),
+        NSPasteboard.PasteboardType("Apple Web Archive pasteboard type")
     ]
+    private static let richTextPasteboardTypeSet = Set(richTextPasteboardTypes)
+    private static let maxRichTextPayloadBytes = 12 * 1024 * 1024
     private static let saveCoalescingDelay: TimeInterval = 0.25
     private let persistenceURL: URL
     private let loadQueue = DispatchQueue(label: "com.warrfie.andpaste.history-load", qos: .utility)
@@ -82,7 +90,11 @@ final class ClipboardStore: ObservableObject {
         saveItems()
     }
 
-    func copyToPasteboard(_ item: ClipboardItem, asPlainText: Bool = false) {
+    func copyToPasteboard(
+        _ item: ClipboardItem,
+        asPlainText: Bool = false,
+        preferFileForImages: Bool = false
+    ) {
         pasteboard.clearContents()
         if asPlainText {
             pasteboard.setString(item.plainTextRepresentation, forType: .string)
@@ -91,17 +103,24 @@ final class ClipboardStore: ObservableObject {
         }
 
         switch item.content {
-        case .text(let text, let richText):
-            if let richText {
-                let richTextType = NSPasteboard.PasteboardType(richText.pasteboardType)
-                pasteboard.declareTypes([richTextType, .string], owner: nil)
-                pasteboard.setData(richText.data, forType: richTextType)
+        case .text(let text, let richTextPayloads):
+            if !richTextPayloads.isEmpty {
+                let richTypes = richTextPayloads.map(\.pasteboardTypeValue)
+                pasteboard.declareTypes(richTypes + [.string], owner: nil)
+                for payload in richTextPayloads {
+                    pasteboard.setData(payload.data, forType: payload.pasteboardTypeValue)
+                }
                 pasteboard.setString(text, forType: .string)
             } else {
                 pasteboard.setString(text, forType: .string)
             }
-        case .image(let image, _):
-            pasteboard.writeObjects([image])
+        case .image(let image, let data):
+            if preferFileForImages, let url = Self.writeImageFile(image: image, fallbackData: data) {
+                pasteboard.writeObjects([url as NSURL])
+                AppLog.write("Copy image to pasteboard as file; url=\(url.path)")
+            } else {
+                pasteboard.writeObjects([image])
+            }
         case .files(let urls):
             pasteboard.writeObjects(urls as [NSURL])
         }
@@ -310,6 +329,40 @@ final class ClipboardStore: ObservableObject {
             .appendingPathComponent("history.cphistory")
     }
 
+    static func imageExportURL(in directory: URL, date: Date = Date()) -> URL {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd HH.mm.ss.SSS"
+        let filename = "andPaste Image \(formatter.string(from: date)).png"
+        return directory.appendingPathComponent(filename)
+    }
+
+    static func pngData(for image: NSImage, fallbackData: Data) -> Data? {
+        let imageData = image.tiffRepresentation ?? (fallbackData.isEmpty ? nil : fallbackData)
+        guard let imageData,
+              let bitmap = NSBitmapImageRep(data: imageData) else { return nil }
+        return bitmap.representation(using: .png, properties: [:])
+    }
+
+    private static func writeImageFile(image: NSImage, fallbackData: Data) -> URL? {
+        guard let pngData = pngData(for: image, fallbackData: fallbackData) else {
+            AppLog.write("Copy image as file skipped: unable to create PNG data")
+            return nil
+        }
+
+        let directory = applicationSupportURL()
+            .appendingPathComponent("Pasteboard Image Files", isDirectory: true)
+        let url = imageExportURL(in: directory)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            try pngData.write(to: url, options: .atomic)
+            return url
+        } catch {
+            AppLog.write("Copy image as file skipped: \(error.localizedDescription)")
+            return nil
+        }
+    }
+
     private static func applicationSupportURL() -> URL {
         let baseURL = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? FileManager.default.temporaryDirectory
@@ -328,12 +381,12 @@ final class ClipboardStore: ObservableObject {
         let string = hasString(in: pasteboardTypes)
             ? pasteboard.string(forType: .string)
             : nil
-        let richText = richTextPayload(from: pasteboard, pasteboardTypes: pasteboardTypes)
+        let richTextPayloads = richTextPayloads(from: pasteboard, pasteboardTypes: pasteboardTypes)
 
         return makeItem(
             fileURLs: fileURLs,
             string: string,
-            richText: richText,
+            richTextPayloads: richTextPayloads,
             image: image,
             pasteboardTypes: pasteboardTypes
         )
@@ -342,7 +395,7 @@ final class ClipboardStore: ObservableObject {
     static func makeItem(
         fileURLs: [URL]?,
         string: String?,
-        richText: ClipboardItem.RichTextPayload? = nil,
+        richTextPayloads: [ClipboardItem.RichTextPayload] = [],
         image: NSImage?,
         pasteboardTypes: [NSPasteboard.PasteboardType]
     ) -> ClipboardItem? {
@@ -355,7 +408,8 @@ final class ClipboardStore: ObservableObject {
         }
 
         if let string, !string.isEmpty {
-            let item = ClipboardItem(content: .text(string, richText: richText))
+            let item = ClipboardItem(content: .text(string, richTextPayloads: richTextPayloads))
+            logRichTextItem(richTextPayloads: richTextPayloads, pasteboardTypes: pasteboardTypes)
             logReadItem(item, pasteboardTypes: pasteboardTypes)
             return item
         }
@@ -384,21 +438,42 @@ final class ClipboardStore: ObservableObject {
         !stringPasteboardTypes.isDisjoint(with: Set(pasteboardTypes))
     }
 
-    private static func richTextPayload(
+    private static func richTextPayloads(
         from pasteboard: NSPasteboard,
         pasteboardTypes: [NSPasteboard.PasteboardType]
-    ) -> ClipboardItem.RichTextPayload? {
-        for type in richTextPasteboardTypes where pasteboardTypes.contains(type) {
+    ) -> [ClipboardItem.RichTextPayload] {
+        var payloads: [ClipboardItem.RichTextPayload] = []
+        for type in pasteboardTypes where richTextPasteboardTypeSet.contains(type) {
             guard let data = pasteboard.data(forType: type), !data.isEmpty else { continue }
-            return ClipboardItem.RichTextPayload(pasteboardType: type.rawValue, data: data)
+            guard data.count <= maxRichTextPayloadBytes else {
+                AppLog.write("Skipped rich text payload: type=\(type.rawValue); bytes=\(data.count); maxBytes=\(maxRichTextPayloadBytes)")
+                continue
+            }
+            payloads.append(ClipboardItem.RichTextPayload(pasteboardType: type.rawValue, data: data))
         }
-        return nil
+        return payloads
     }
 
     private static func logReadItem(_ item: ClipboardItem, pasteboardTypes: [NSPasteboard.PasteboardType]) {
         AppLog.write(
             "Read pasteboard item: contentType=\(item.contentType.rawValue); pasteboardTypes=\(formatPasteboardTypes(pasteboardTypes))"
         )
+    }
+
+    private static func logRichTextItem(
+        richTextPayloads: [ClipboardItem.RichTextPayload],
+        pasteboardTypes: [NSPasteboard.PasteboardType]
+    ) {
+        guard !richTextPayloads.isEmpty else { return }
+        let stored = richTextPayloads
+            .map { "\($0.pasteboardType)(\($0.data.count)b)" }
+            .joined(separator: ",")
+        let skipped = pasteboardTypes
+            .filter { !richTextPasteboardTypeSet.contains($0) }
+            .map(\.rawValue)
+            .sorted()
+            .joined(separator: ",")
+        AppLog.write("Read rich text diagnostics: stored=\(stored); skippedTypes=\(skipped)")
     }
 
     private static func logImageItem(_ item: ClipboardItem, data: Data, pasteboardTypes: [NSPasteboard.PasteboardType]) {
@@ -442,6 +517,7 @@ private struct PersistentClipboardItem: Codable {
     let kind: ContentKind
     let text: String?
     let richText: ClipboardItem.RichTextPayload?
+    let richTextPayloads: [ClipboardItem.RichTextPayload]?
     let imageData: Data?
     let fileURLs: [URL]?
 
@@ -450,22 +526,25 @@ private struct PersistentClipboardItem: Codable {
         createdAt = item.createdAt
         isPinned = item.isPinned
         switch item.content {
-        case .text(let value, let richText):
+        case .text(let value, let richTextPayloads):
             kind = .text
             text = value
-            self.richText = richText
+            richText = richTextPayloads.first
+            self.richTextPayloads = richTextPayloads
             imageData = nil
             fileURLs = nil
         case .image(_, let data):
             kind = .image
             text = nil
             richText = nil
+            richTextPayloads = nil
             imageData = data
             fileURLs = nil
         case .files(let urls):
             kind = .files
             text = nil
             richText = nil
+            richTextPayloads = nil
             imageData = nil
             fileURLs = urls
         }
@@ -475,7 +554,12 @@ private struct PersistentClipboardItem: Codable {
         switch kind {
         case .text:
             guard let text else { return nil }
-            return ClipboardItem(id: id, content: .text(text, richText: richText), createdAt: createdAt, isPinned: isPinned)
+            return ClipboardItem(
+                id: id,
+                content: .text(text, richTextPayloads: richTextPayloads ?? richText.map { [$0] } ?? []),
+                createdAt: createdAt,
+                isPinned: isPinned
+            )
         case .image:
             guard let imageData, let image = NSImage(data: imageData) else { return nil }
             return ClipboardItem(id: id, content: .image(image, imageData), createdAt: createdAt, isPinned: isPinned)

@@ -381,12 +381,17 @@ private struct ClipboardDetailView: View {
     @ViewBuilder
     private var detailContent: some View {
         switch item.content {
-        case .text(let text, _):
-            Text(text)
-                .font(.system(size: 12))
-                .foregroundStyle(.primary)
-                .textSelection(.enabled)
-                .multilineTextAlignment(.leading)
+        case .text(let text, let richTextPayloads):
+            if let attributedString = RichTextPreview.attributedString(from: richTextPayloads) {
+                RichTextPreview(attributedString: attributedString)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(text)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.primary)
+                    .textSelection(.enabled)
+                    .multilineTextAlignment(.leading)
+            }
         case .image(let image, _):
             Image(nsImage: image)
                 .resizable()
@@ -401,6 +406,63 @@ private struct ClipboardDetailView: View {
                         .textSelection(.enabled)
                 }
             }
+        }
+    }
+}
+
+private struct RichTextPreview: NSViewRepresentable {
+    let attributedString: NSAttributedString
+
+    func makeNSView(context: Context) -> NSTextView {
+        let textView = IntrinsicTextView()
+        textView.drawsBackground = false
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.textContainerInset = NSSize(width: 0, height: 0)
+        textView.textContainer?.lineFragmentPadding = 0
+        textView.textContainer?.widthTracksTextView = true
+        textView.isHorizontallyResizable = false
+        textView.isVerticallyResizable = true
+        textView.autoresizingMask = [.width]
+        return textView
+    }
+
+    func updateNSView(_ textView: NSTextView, context: Context) {
+        textView.textStorage?.setAttributedString(attributedString)
+        textView.invalidateIntrinsicContentSize()
+    }
+
+    static func attributedString(from payloads: [ClipboardItem.RichTextPayload]) -> NSAttributedString? {
+        for payload in payloads {
+            guard let documentType = payload.attributedStringDocumentType else { continue }
+            if let attributedString = try? NSAttributedString(
+                data: payload.data,
+                options: [.documentType: documentType],
+                documentAttributes: nil
+            ) {
+                return sanitizedForPreview(attributedString)
+            }
+        }
+        return nil
+    }
+
+    private static func sanitizedForPreview(_ attributedString: NSAttributedString) -> NSAttributedString {
+        let mutableString = NSMutableAttributedString(attributedString: attributedString)
+        let fullRange = NSRange(location: 0, length: mutableString.length)
+        mutableString.removeAttribute(.backgroundColor, range: fullRange)
+        mutableString.removeAttribute(.foregroundColor, range: fullRange)
+        mutableString.addAttribute(.foregroundColor, value: NSColor.labelColor, range: fullRange)
+        return mutableString
+    }
+
+    private final class IntrinsicTextView: NSTextView {
+        override var intrinsicContentSize: NSSize {
+            guard let layoutManager, let textContainer else {
+                return NSSize(width: NSView.noIntrinsicMetric, height: 0)
+            }
+            layoutManager.ensureLayout(for: textContainer)
+            let height = ceil(layoutManager.usedRect(for: textContainer).height)
+            return NSSize(width: NSView.noIntrinsicMetric, height: max(height, 1))
         }
     }
 }

@@ -118,7 +118,7 @@ final class AppModel: ObservableObject {
         let application = targetApplication
         switch mode {
         case .original:
-            store.copyToPasteboard(item)
+            store.copyToPasteboard(item, preferFileForImages: Self.shouldPasteImagesAsFiles(into: application))
         case .plainText:
             store.copyToPasteboard(item, asPlainText: true)
         }
@@ -154,6 +154,14 @@ final class AppModel: ObservableObject {
             return
         }
         targetApplication = frontmostApplication
+    }
+
+    nonisolated static func shouldPasteImagesAsFiles(into application: NSRunningApplication?) -> Bool {
+        shouldPasteImagesAsFiles(intoBundleIdentifier: application?.bundleIdentifier)
+    }
+
+    nonisolated static func shouldPasteImagesAsFiles(intoBundleIdentifier bundleIdentifier: String?) -> Bool {
+        bundleIdentifier == "com.apple.finder"
     }
 }
 

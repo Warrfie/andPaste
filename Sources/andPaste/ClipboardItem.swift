@@ -69,7 +69,7 @@ struct ClipboardItem: Identifiable, Equatable {
     }
 
     enum Content: Equatable {
-        case text(String, richText: RichTextPayload? = nil)
+        case text(String, richTextPayloads: [RichTextPayload] = [])
         case image(NSImage, Data)
         case files([URL])
     }
@@ -139,7 +139,7 @@ struct ClipboardItem: Identifiable, Equatable {
     var plainTextRepresentation: String {
         switch content {
         case .text(let text, _):
-            return text
+            return Self.normalizePlainTextForPaste(text)
         case .image:
             return subtitle
         case .files(let urls):
@@ -149,9 +149,12 @@ struct ClipboardItem: Identifiable, Equatable {
 
     var fingerprint: String {
         switch content {
-        case .text(let text, let richText):
-            if let richText {
-                return "text:\(text):rich:\(Self.sha256Hex(for: richText.data))"
+        case .text(let text, let richTextPayloads):
+            if !richTextPayloads.isEmpty {
+                let richFingerprint = richTextPayloads
+                    .map { "\($0.pasteboardType):\(Self.sha256Hex(for: $0.data))" }
+                    .joined(separator: "|")
+                return "text:\(text):rich:\(richFingerprint)"
             }
             return "text:\(text)"
         case .image(_, let data):
@@ -185,6 +188,57 @@ struct ClipboardItem: Identifiable, Equatable {
         }
 
         return .text
+    }
+
+    static func normalizePlainTextForPaste(_ text: String) -> String {
+        text
+            .components(separatedBy: .newlines)
+            .map(normalizeChecklistLine)
+            .joined(separator: "\n")
+    }
+
+    private static func normalizeChecklistLine(_ line: String) -> String {
+        let leadingWhitespace = String(line.prefix { $0 == " " || $0 == "\t" })
+        let trimmedLine = line.dropFirst(leadingWhitespace.count)
+        guard let firstCharacter = trimmedLine.first else { return line }
+
+        let uncheckedMarkers: Set<Character> = ["☐", "□", "▫", "◻"]
+        let checkedMarkers: Set<Character> = ["☑", "☒", "✓", "✔", "✅"]
+        let markdownPrefix: String
+        if uncheckedMarkers.contains(firstCharacter) {
+            markdownPrefix = "- [ ]"
+        } else if checkedMarkers.contains(firstCharacter) {
+            markdownPrefix = "- [x]"
+        } else {
+            return line
+        }
+
+        let remainder = trimmedLine
+            .dropFirst()
+            .drop { $0 == " " || $0 == "\t" || $0 == "\u{FE0E}" || $0 == "\u{FE0F}" }
+        return "\(leadingWhitespace)\(markdownPrefix) \(remainder)"
+    }
+}
+
+extension ClipboardItem.RichTextPayload {
+    var pasteboardTypeValue: NSPasteboard.PasteboardType {
+        NSPasteboard.PasteboardType(pasteboardType)
+    }
+
+    var attributedStringDocumentType: NSAttributedString.DocumentType? {
+        switch pasteboardType {
+        case NSPasteboard.PasteboardType.rtf.rawValue,
+            "NeXT Rich Text Format v1.0 pasteboard type":
+            return .rtf
+        case NSPasteboard.PasteboardType.rtfd.rawValue,
+            "com.apple.flat-rtfd":
+            return .rtfd
+        case NSPasteboard.PasteboardType.html.rawValue,
+            "Apple HTML pasteboard type":
+            return .html
+        default:
+            return nil
+        }
     }
 }
 

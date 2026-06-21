@@ -13,4 +13,10 @@ final class PasteControllerTests: XCTestCase {
     func testCannotPasteWithoutPostEventOrAccessibilityTrust() {
         XCTAssertFalse(PasteController.canPaste(postEventTrusted: false, accessibilityTrusted: false))
     }
+
+    func testImagesPasteAsFilesOnlyIntoFinder() {
+        XCTAssertTrue(AppModel.shouldPasteImagesAsFiles(intoBundleIdentifier: "com.apple.finder"))
+        XCTAssertFalse(AppModel.shouldPasteImagesAsFiles(intoBundleIdentifier: "com.apple.dt.Xcode"))
+        XCTAssertFalse(AppModel.shouldPasteImagesAsFiles(intoBundleIdentifier: nil))
+    }
 }
