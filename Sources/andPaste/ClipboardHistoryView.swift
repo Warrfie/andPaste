@@ -108,8 +108,8 @@ struct ClipboardHistoryView: View {
                 onPaste: {
                     pasteSelected(mode: pasteMode)
                 },
-                onSelectPlainText: {
-                    pasteMode = .plainText
+                onPastePlainText: {
+                    pasteSelected(mode: .plainText)
                 }
             )
         }
@@ -305,7 +305,7 @@ private struct ClipboardContentTypeBadge: View {
 private struct PasteSplitButton: View {
     let isEnabled: Bool
     let onPaste: () -> Void
-    let onSelectPlainText: () -> Void
+    let onPastePlainText: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
@@ -322,7 +322,7 @@ private struct PasteSplitButton: View {
                 .frame(width: 1, height: 16)
 
             Menu {
-                Button(action: onSelectPlainText) {
+                Button(action: onPastePlainText) {
                     Label("Paste Plain Text", systemImage: "checkmark")
                 }
             } label: {
