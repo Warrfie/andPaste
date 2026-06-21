@@ -114,9 +114,11 @@ final class AppModel: ObservableObject {
         window.makeKeyAndOrderFront(nil)
     }
 
-    func select(_ item: ClipboardItem, mode: PasteMode = .plainText) {
+    func select(_ item: ClipboardItem, mode: PasteMode = .original) {
         let application = targetApplication
         switch mode {
+        case .original:
+            store.copyToPasteboard(item)
         case .plainText:
             store.copyToPasteboard(item, asPlainText: true)
         }

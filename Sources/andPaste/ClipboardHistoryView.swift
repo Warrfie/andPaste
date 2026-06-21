@@ -9,7 +9,7 @@ struct ClipboardHistoryView: View {
     @State private var query = ""
     @State private var selectedItemID: ClipboardItem.ID?
     @State private var keyDownMonitor: Any?
-    @State private var pasteMode: PasteMode = .plainText
+    @State private var pasteMode: PasteMode = .original
 
     private var filteredItems: [ClipboardItem] {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -172,7 +172,7 @@ struct ClipboardHistoryView: View {
 
             switch event.keyCode {
             case 36:
-                pasteSelected(mode: .plainText)
+                pasteSelected(mode: pasteMode)
                 return nil
             case 53:
                 onClose()
@@ -381,7 +381,7 @@ private struct ClipboardDetailView: View {
     @ViewBuilder
     private var detailContent: some View {
         switch item.content {
-        case .text(let text):
+        case .text(let text, _):
             Text(text)
                 .font(.system(size: 12))
                 .foregroundStyle(.primary)

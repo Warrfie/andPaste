@@ -3,6 +3,11 @@ import CryptoKit
 import Foundation
 
 struct ClipboardItem: Identifiable, Equatable {
+    struct RichTextPayload: Codable, Equatable {
+        let pasteboardType: String
+        let data: Data
+    }
+
     enum ContentType: String {
         case text
         case image
@@ -64,7 +69,7 @@ struct ClipboardItem: Identifiable, Equatable {
     }
 
     enum Content: Equatable {
-        case text(String)
+        case text(String, richText: RichTextPayload? = nil)
         case image(NSImage, Data)
         case files([URL])
     }
@@ -94,7 +99,7 @@ struct ClipboardItem: Identifiable, Equatable {
 
     var displayType: DisplayType {
         switch content {
-        case .text(let text):
+        case .text(let text, _):
             return Self.displayType(forText: text)
         case .image:
             return .image
@@ -114,7 +119,7 @@ struct ClipboardItem: Identifiable, Equatable {
 
     var subtitle: String {
         switch content {
-        case .text(let text):
+        case .text(let text, _):
             return text.collapsedWhitespace
         case .image(let image, _):
             return "\(Int(image.size.width)) x \(Int(image.size.height)) px"
@@ -128,15 +133,26 @@ struct ClipboardItem: Identifiable, Equatable {
     }
 
     var supportsPlainTextPaste: Bool {
-        if case .text = content {
-            return true
+        true
+    }
+
+    var plainTextRepresentation: String {
+        switch content {
+        case .text(let text, _):
+            return text
+        case .image:
+            return subtitle
+        case .files(let urls):
+            return urls.map(\.path).joined(separator: "\n")
         }
-        return false
     }
 
     var fingerprint: String {
         switch content {
-        case .text(let text):
+        case .text(let text, let richText):
+            if let richText {
+                return "text:\(text):rich:\(Self.sha256Hex(for: richText.data))"
+            }
             return "text:\(text)"
         case .image(_, let data):
             return "image:\(Self.sha256Hex(for: data))"

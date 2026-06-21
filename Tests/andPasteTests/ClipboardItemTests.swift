@@ -14,6 +14,20 @@ final class ClipboardItemTests: XCTestCase {
         XCTAssertEqual(item.fingerprint, "text:  hello\n\nworld\tfrom   clipboard  ")
     }
 
+    func testRichTextPayloadKeepsPlainTextPreviewAndAffectsFingerprint() {
+        let richText = ClipboardItem.RichTextPayload(
+            pasteboardType: NSPasteboard.PasteboardType.rtf.rawValue,
+            data: Data([1, 2, 3])
+        )
+        let item = ClipboardItem(content: .text("hello", richText: richText))
+
+        XCTAssertEqual(item.contentType, .text)
+        XCTAssertEqual(item.displayType, .text)
+        XCTAssertEqual(item.subtitle, "hello")
+        XCTAssertEqual(item.plainTextRepresentation, "hello")
+        XCTAssertTrue(item.fingerprint.hasPrefix("text:hello:rich:"))
+    }
+
     func testFileTitleAndSubtitleUseFileNames() {
         let item = ClipboardItem(content: .files([
             URL(fileURLWithPath: "/tmp/one.txt"),
@@ -40,15 +54,27 @@ final class ClipboardItemTests: XCTestCase {
         XCTAssertEqual(item.fingerprint, "image:039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81")
     }
 
-    func testOnlyTextSupportsPlainTextPaste() {
+    func testAllContentTypesSupportPlainTextPaste() {
         let textItem = ClipboardItem(content: .text("hello"))
         let image = NSImage(size: NSSize(width: 2, height: 2))
         let imageItem = ClipboardItem(content: .image(image, Data([1, 2, 3])))
         let fileItem = ClipboardItem(content: .files([URL(fileURLWithPath: "/tmp/example.txt")]))
 
         XCTAssertTrue(textItem.supportsPlainTextPaste)
-        XCTAssertFalse(imageItem.supportsPlainTextPaste)
-        XCTAssertFalse(fileItem.supportsPlainTextPaste)
+        XCTAssertTrue(imageItem.supportsPlainTextPaste)
+        XCTAssertTrue(fileItem.supportsPlainTextPaste)
+    }
+
+    func testPlainTextRepresentationUsesPasteSafeTextOnly() {
+        let image = NSImage(size: NSSize(width: 80, height: 40))
+        let fileItem = ClipboardItem(content: .files([
+            URL(fileURLWithPath: "/tmp/one.txt"),
+            URL(fileURLWithPath: "/tmp/two.pdf")
+        ]))
+
+        XCTAssertEqual(ClipboardItem(content: .text("hello")).plainTextRepresentation, "hello")
+        XCTAssertEqual(ClipboardItem(content: .image(image, Data())).plainTextRepresentation, "80 x 40 px")
+        XCTAssertEqual(fileItem.plainTextRepresentation, "/tmp/one.txt\n/tmp/two.pdf")
     }
 
     @MainActor
@@ -62,6 +88,28 @@ final class ClipboardItemTests: XCTestCase {
 
         XCTAssertEqual(item?.contentType, .text)
         XCTAssertEqual(item?.subtitle, "/ZSQ-example")
+    }
+
+    @MainActor
+    func testStringPasteboardItemKeepsRichTextPayload() {
+        let richText = ClipboardItem.RichTextPayload(
+            pasteboardType: NSPasteboard.PasteboardType.rtf.rawValue,
+            data: Data([4, 5, 6])
+        )
+        let item = ClipboardStore.makeItem(
+            fileURLs: nil,
+            string: "- [ ] formatted",
+            richText: richText,
+            image: nil,
+            pasteboardTypes: [.rtf, .string]
+        )
+
+        guard case .text(let text, let storedRichText) = item?.content else {
+            XCTFail("Expected text item")
+            return
+        }
+        XCTAssertEqual(text, "- [ ] formatted")
+        XCTAssertEqual(storedRichText, richText)
     }
 
     @MainActor
