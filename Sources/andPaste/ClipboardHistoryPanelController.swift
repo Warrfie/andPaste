@@ -75,6 +75,7 @@ final class ClipboardHistoryPanelController {
         globalClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: mask) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.panel.isVisible else { return }
+                guard !HistoryWindowSupport.currentMouseLocationBelongsToHistoryWindow() else { return }
                 self.onClose()
             }
         }

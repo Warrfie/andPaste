@@ -25,11 +25,14 @@ enum HistoryWindowSupport {
     }
 
     static func owns(_ event: NSEvent) -> Bool {
-        eventBelongsToHistoryWindow(
+        if eventBelongsToHistoryWindow(
             eventWindow: event.window,
             keyWindow: NSApp.keyWindow,
             historyWindow: historyWindow
-        )
+        ) {
+            return true
+        }
+        return eventLocationBelongsToHistoryWindow(event, historyWindow: historyWindow)
     }
 
     static func eventBelongsToHistoryWindow(
@@ -39,6 +42,20 @@ enum HistoryWindowSupport {
     ) -> Bool {
         guard let historyWindow else { return false }
         return eventWindow === historyWindow || keyWindow === historyWindow
+    }
+
+    static func currentMouseLocationBelongsToHistoryWindow() -> Bool {
+        guard let historyWindow else { return false }
+        return point(NSEvent.mouseLocation, isInside: historyWindow.frame)
+    }
+
+    private static func eventLocationBelongsToHistoryWindow(
+        _ event: NSEvent,
+        historyWindow: NSWindow?
+    ) -> Bool {
+        guard let historyWindow, let eventWindow = event.window else { return false }
+        let screenPoint = eventWindow.convertPoint(toScreen: event.locationInWindow)
+        return point(screenPoint, isInside: historyWindow.frame)
     }
 
     private static var historyWindow: NSWindow? {
@@ -83,5 +100,9 @@ enum HistoryWindowSupport {
             visibleFrame.maxY - constrainedFrame.height - inset
         )
         return constrainedFrame
+    }
+
+    nonisolated static func point(_ point: NSPoint, isInside frame: NSRect) -> Bool {
+        frame.contains(point)
     }
 }

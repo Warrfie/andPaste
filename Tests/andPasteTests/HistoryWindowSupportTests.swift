@@ -71,4 +71,18 @@ final class HistoryWindowSupportTests: XCTestCase {
             )
         )
     }
+
+    func testPointInsideHistoryWindowFrameBelongsToHistoryWindow() {
+        let frame = NSRect(x: 100, y: 200, width: 520, height: 300)
+
+        XCTAssertTrue(HistoryWindowSupport.point(NSPoint(x: 120, y: 220), isInside: frame))
+        XCTAssertTrue(HistoryWindowSupport.point(NSPoint(x: 619, y: 499), isInside: frame))
+    }
+
+    func testPointOutsideHistoryWindowFrameDoesNotBelongToHistoryWindow() {
+        let frame = NSRect(x: 100, y: 200, width: 520, height: 300)
+
+        XCTAssertFalse(HistoryWindowSupport.point(NSPoint(x: 99, y: 220), isInside: frame))
+        XCTAssertFalse(HistoryWindowSupport.point(NSPoint(x: 120, y: 501), isInside: frame))
+    }
 }
