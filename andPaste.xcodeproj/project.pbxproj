@@ -25,6 +25,7 @@
 		B00000000000000000000016 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000016 /* AppIcon.icns */; };
 		B00000000000000000000017 /* andPasteLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000019 /* andPasteLauncher.swift */; };
 		B00000000000000000000018 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000023 /* PrivacyInfo.xcprivacy */; };
+		B00000000000000000000019 /* AppPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00000000000000000000024 /* AppPreferences.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +52,7 @@
 		C00000000000000000000021 /* Signing.local.xcconfig.example */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Signing.local.xcconfig.example; sourceTree = "<group>"; };
 		C00000000000000000000022 /* andPaste.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = andPaste.entitlements; sourceTree = "<group>"; };
 		C00000000000000000000023 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		C00000000000000000000024 /* AppPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferences.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				C00000000000000000000001 /* AppModel.swift */,
+				C00000000000000000000024 /* AppPreferences.swift */,
 				C00000000000000000000002 /* ClipboardHistoryEncryption.swift */,
 				C00000000000000000000003 /* ClipboardHistoryLayout.swift */,
 				C00000000000000000000004 /* ClipboardHistoryPanelController.swift */,
@@ -212,6 +215,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B00000000000000000000001 /* AppModel.swift in Sources */,
+				B00000000000000000000019 /* AppPreferences.swift in Sources */,
 				B00000000000000000000002 /* ClipboardHistoryEncryption.swift in Sources */,
 				B00000000000000000000003 /* ClipboardHistoryLayout.swift in Sources */,
 				B00000000000000000000004 /* ClipboardHistoryPanelController.swift in Sources */,

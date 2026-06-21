@@ -22,23 +22,45 @@ final class PasteController {
     }
 
     private func ensureAccessibilityPermission() -> Bool {
-        guard !CGPreflightPostEventAccess() else { return true }
-        guard !AXIsProcessTrusted() else {
-            AppLog.write(
-                "Post event access preflight is false, but Accessibility is trusted; continuing without restart"
-            )
+        let isPostEventTrusted = CGPreflightPostEventAccess()
+        let isAccessibilityTrusted = AXIsProcessTrusted()
+        guard !Self.canPaste(postEventTrusted: isPostEventTrusted, accessibilityTrusted: isAccessibilityTrusted) else {
+            if !isPostEventTrusted, isAccessibilityTrusted {
+                AppLog.write(
+                    "Post event access preflight is false, but Accessibility is trusted; continuing without restart"
+                )
+            }
             return true
         }
 
         return requestPostEventAccess()
     }
 
+    nonisolated static func canPaste(postEventTrusted: Bool, accessibilityTrusted: Bool) -> Bool {
+        postEventTrusted || accessibilityTrusted
+    }
+
     private func requestPostEventAccess() -> Bool {
         let isTrusted = CGRequestPostEventAccess()
+        let isAccessibilityTrusted = AXIsProcessTrusted()
         AppLog.write(
-            "Post event access requested; trusted=\(isTrusted); axTrusted=\(AXIsProcessTrusted()); bundleID=\(Bundle.main.bundleIdentifier ?? "unknown"); bundlePath=\(Bundle.main.bundlePath)"
+            "Post event access requested; trusted=\(isTrusted); axTrusted=\(isAccessibilityTrusted); bundleID=\(Bundle.main.bundleIdentifier ?? "unknown"); bundlePath=\(Bundle.main.bundlePath)"
         )
-        return isTrusted
+        if Self.canPaste(postEventTrusted: isTrusted, accessibilityTrusted: isAccessibilityTrusted) {
+            if !isTrusted, isAccessibilityTrusted {
+                AppLog.write(
+                    "Post event access request returned false, but Accessibility is trusted; continuing without restart"
+                )
+            }
+            return true
+        }
+
+        if !isTrusted, !isAccessibilityTrusted {
+            AppLog.write(
+                "Paste skipped: post event access and Accessibility are not granted"
+            )
+        }
+        return false
     }
 
     private func postCommandV() {

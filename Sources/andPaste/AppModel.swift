@@ -3,13 +3,11 @@ import SwiftUI
 
 @MainActor
 final class AppModel: ObservableObject {
-    private static let launchAtLoginUserDefaultsKey = "launchAtLogin"
-    private static let hotkeyShortcutUserDefaultsKey = "hotkeyShortcut"
-
     let store = ClipboardStore()
-    @Published private(set) var launchAtLogin = UserDefaults.standard.bool(forKey: launchAtLoginUserDefaultsKey)
+    @Published private(set) var launchAtLogin: Bool
     @Published private(set) var hotkeyShortcut: HotkeyShortcut
 
+    private let preferences: AppPreferences
     private let hotkeyManager = HotkeyManager()
     private let pasteController = PasteController()
     private let singleInstanceController = SingleInstanceController()
@@ -29,10 +27,10 @@ final class AppModel: ObservableObject {
         }
     )
 
-    init() {
-        hotkeyShortcut = HotkeyShortcut(
-            rawValue: UserDefaults.standard.string(forKey: Self.hotkeyShortcutUserDefaultsKey) ?? ""
-        ) ?? .fnV
+    init(preferences: AppPreferences = AppPreferences()) {
+        self.preferences = preferences
+        launchAtLogin = preferences.launchAtLogin
+        hotkeyShortcut = preferences.hotkeyShortcut
         hotkeyManager.shortcut = hotkeyShortcut
         AppLog.write("AppModel initialized; shortcut=\(hotkeyShortcut.rawValue)")
         guard !XcodePreviewSupport.isRunning else { return }
@@ -129,14 +127,14 @@ final class AppModel: ObservableObject {
     func setLaunchAtLogin(_ isEnabled: Bool) {
         AppLog.write("Set launch at login: \(isEnabled)")
         launchAtLogin = isEnabled
-        UserDefaults.standard.set(isEnabled, forKey: Self.launchAtLoginUserDefaultsKey)
+        preferences.setLaunchAtLogin(isEnabled)
         launchAtLoginController.apply(isEnabled: isEnabled)
     }
 
     func setHotkeyShortcut(_ shortcut: HotkeyShortcut) {
         AppLog.write("Set hotkey shortcut: \(shortcut.rawValue)")
         hotkeyShortcut = shortcut
-        UserDefaults.standard.set(shortcut.rawValue, forKey: Self.hotkeyShortcutUserDefaultsKey)
+        preferences.setHotkeyShortcut(shortcut)
         hotkeyManager.shortcut = shortcut
     }
 

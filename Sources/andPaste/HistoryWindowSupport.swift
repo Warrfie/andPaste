@@ -4,10 +4,6 @@ import AppKit
 enum HistoryWindowSupport {
     private static weak var registeredWindow: NSWindow?
 
-    static var isHistoryWindowVisible: Bool {
-        historyWindow?.isVisible == true
-    }
-
     static func register(_ window: NSWindow) {
         registeredWindow = window
         window.isOpaque = false
@@ -24,16 +20,25 @@ enum HistoryWindowSupport {
         var frame = window.frame
         frame.origin.x = oldFrame.midX - frame.width / 2
         frame.origin.y = oldFrame.maxY - frame.height
+        frame = constrainedFrame(frame, toVisibleFrameOf: window.screen)
         window.setFrame(frame, display: true)
     }
 
-    static func closeHistoryWindow() {
-        historyWindow?.close()
+    static func owns(_ event: NSEvent) -> Bool {
+        eventBelongsToHistoryWindow(
+            eventWindow: event.window,
+            keyWindow: NSApp.keyWindow,
+            historyWindow: historyWindow
+        )
     }
 
-    static func owns(_ event: NSEvent) -> Bool {
+    static func eventBelongsToHistoryWindow(
+        eventWindow: NSWindow?,
+        keyWindow: NSWindow?,
+        historyWindow: NSWindow?
+    ) -> Bool {
         guard let historyWindow else { return false }
-        return event.window === historyWindow || NSApp.keyWindow === historyWindow
+        return eventWindow === historyWindow || keyWindow === historyWindow
     }
 
     private static var historyWindow: NSWindow? {
@@ -52,7 +57,31 @@ enum HistoryWindowSupport {
         var frame = window.frame
         frame.origin.x = min(max(anchor.midX - frame.width / 2, visibleFrame.minX + 12), visibleFrame.maxX - frame.width - 12)
         frame.origin.y = min(max(anchor.minY - frame.height - 10, visibleFrame.minY + 12), visibleFrame.maxY - frame.height - 12)
+        frame = constrainedFrame(frame, inside: visibleFrame)
         window.setFrame(frame, display: true)
         AppLog.write("History panel positioned; mouse=\(NSStringFromPoint(mouseLocation)); visibleFrame=\(NSStringFromRect(visibleFrame)); frame=\(NSStringFromRect(frame))")
+    }
+
+    private static func constrainedFrame(_ frame: NSRect, toVisibleFrameOf screen: NSScreen?) -> NSRect {
+        let visibleFrame = screen?.visibleFrame ?? NSScreen.main?.visibleFrame
+        guard let visibleFrame else { return frame }
+        return constrainedFrame(frame, inside: visibleFrame)
+    }
+
+    nonisolated static func constrainedFrame(
+        _ frame: NSRect,
+        inside visibleFrame: NSRect,
+        inset: CGFloat = 12
+    ) -> NSRect {
+        var constrainedFrame = frame
+        constrainedFrame.origin.x = min(
+            max(constrainedFrame.origin.x, visibleFrame.minX + inset),
+            visibleFrame.maxX - constrainedFrame.width - inset
+        )
+        constrainedFrame.origin.y = min(
+            max(constrainedFrame.origin.y, visibleFrame.minY + inset),
+            visibleFrame.maxY - constrainedFrame.height - inset
+        )
+        return constrainedFrame
     }
 }
